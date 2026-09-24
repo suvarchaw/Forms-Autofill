@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Forms Autofill",
+  "version": "0.0.1",
+  "description": "Fill Google Forms from a saved profile and get AI quiz suggestions you confirm one by one.",
+  "permissions": ["storage"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_popup": "src/popup/index.html" },
+  "content_scripts": [
+    { "matches": ["https://docs.google.com/forms/*"], "js": ["content.js"] }
+  ]
+}
