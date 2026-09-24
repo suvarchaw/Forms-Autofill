@@ -21,3 +21,6 @@ next reloads- we tested window test makrer which came out as undefined. pressing
 **badge bug** – the "not filled" badge was added at the bottom of each question's box, so it sat right above the next question's title and looked like it belonged to that one. the code was right but the page was misleading, and users read the page, not the code. fixed by putting the badge next to the question's own title. i checked which question each badge really belonged to with a console command instead of guessing.
 
 **fixture** – my first capture saved the terminal command instead of the page, because my clipboard had the command in it. the parser found 0 questions and the tests failed straight away, so the tests caught it. the second, real capture passed, which proved claude's rebuilt fixture was accurate. i checked it instead of just trusting it.
+
+## nano spike
+we tested where gemini nano can run by putting the same test in 4 places: service worker, popup, offscreen page and content script. it worked in all 4. so the AI can live in the service worker like we planned, and we don't need an offscreen page or its extra permission. the first download has to start from a click in the popup. the reply sometimes had a newline at the end ("4\n"), so we need to trim it. we did this on a separate git branch so the test code never touched main — only what we learned comes back.

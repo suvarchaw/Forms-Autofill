@@ -69,6 +69,10 @@ A Chrome extension for Google Forms that (1) fills personal details from a saved
   response is a JSON array of `{ questionIndex, optionIndex }`.
 - AI path: check `LanguageModel.availability()` → use Nano if it's available → otherwise send the request through the
   service worker to the Cloudflare Worker proxy. The Nano download starts from the popup, which has user activation.
+- Nano runs in the service worker (spike, open question 1). No offscreen document.
+- Trim model output before parsing: the spike saw `"4\n"` for a prompt asking for only a number.
+- Untested: service-worker behaviour when `availability()` is `"downloadable"` (the spike ran with the model already
+  downloaded). Check it during v0.3 before relying on the popup-starts-download flow.
 - **Suggest UI**: the suggested option gets a colored outline, and a chip under the question reads "AI pick ✓ / ✕".
   ✓ selects the option with `.click()` (dropdown: open it, then click the option). ✕ removes the suggestion.
 - The Worker accepts only `{questions, options}`, builds the prompt server-side and enforces the global daily cap plus
@@ -127,11 +131,10 @@ A Chrome extension for Google Forms that (1) fills personal details from a saved
 - `storage`: save the profile, trigger mode and install ID in `chrome.storage.local`.
 - `content_scripts` matches `https://docs.google.com/forms/*`: parse and fill only on Google Forms pages.
 - `host_permissions`: `https://<worker>.workers.dev/*`, so the service worker can call the proxy. Only that URL. (v0.3)
-- `offscreen`: only if the spike shows `LanguageModel` can't run in the service worker. (v0.3, conditional)
-- Not requested: `tabs` (getting the active tab's ID for messaging doesn't need it), `scripting`, `<all_urls>`.
+- Not requested: `offscreen` (the spike showed Nano runs in the service worker), `tabs` (getting the active tab's ID for messaging doesn't need it), `scripting`, `<all_urls>`.
 
 ## Open questions
-1. Does `LanguageModel` inference work in an extension service worker? If not, which is better: an offscreen document or the popup? The popup is a poor host because closing it kills inference. (Spike before v0.3.)
+1. ~~Does `LanguageModel` inference work in an extension service worker? If not, which is better: an offscreen document or the popup? The popup is a poor host because closing it kills inference.~~ **Resolved (spike/nano, not merged):** yes. `LanguageModel` is defined and `create()` + `prompt()` work in the service worker, popup, offscreen document and content script (Chrome on macOS, model already downloaded). Nano runs in the service worker; no offscreen document or `offscreen` permission is needed. The download is still started from the popup click (user activation).
 2. Rate limiting: Cloudflare's rate-limiting binding or a Durable Object for the global cap? (Decide in v0.3 planning.)
 3. Do Groq's terms allow serving other users' requests through one key? If not, which provider?
 4. ~~Are dropdown `role="option"` elements in the DOM before the dropdown is opened?~~ **Resolved (v0.1):** yes, all options are in the DOM before opening. The "Choose" placeholder is the option with `data-value=""`.
