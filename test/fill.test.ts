@@ -39,7 +39,8 @@ test('fills matched text fields, fires input + change, leaves pre-filled fields 
   expect(input(doc, "Father's name").value).toBe('');
 
   for (const h of ["Father's name", 'Username', 'Why do you want to join?']) {
-    expect(item(doc, h).querySelector('[data-fa-badge]')).not.toBeNull();
+    const badge = item(doc, h).querySelector('[data-fa-badge]');
+    expect(badge?.previousElementSibling?.getAttribute('role')).toBe('heading');
   }
   expect(item(doc, 'Phone number').querySelector('[data-fa-badge]')).toBeNull();
   expect(result).toEqual({ filled: 7, skipped: 4 });

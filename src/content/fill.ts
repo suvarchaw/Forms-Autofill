@@ -42,5 +42,7 @@ function addBadge(item: Element) {
   badge.dataset.faBadge = '';
   badge.textContent = 'not filled';
   badge.style.cssText = 'display:inline-block;margin:4px 0;padding:1px 6px;border-radius:8px;font:12px sans-serif;background:#fde7e9;color:#a50e0e';
-  item.append(badge);
+  // Right after the heading, not inside it: inside would change the heading's
+  // textContent, i.e. the question text the parser and matcher read on the next run.
+  item.querySelector('[role="heading"][aria-level="3"]')!.after(badge);
 }
