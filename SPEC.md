@@ -85,15 +85,22 @@ A Chrome extension for Google Forms that (1) fills personal details from a saved
 
 ### v0.4: Auto mode, multi-page, errors, polish
 - **Auto mode = auto-suggest only**: suggestions appear on page load and on each new form page, and every pick still needs ✓.
-- A `MutationObserver` detects form page changes and re-runs parsing, plus autofill if the user triggered it on page 1
-  and suggestions if the mode is Auto. No duplicate chips or badges.
+- **Multi-page forms need no page-change detection.** "Next" is a full page load (verified: a `window` marker set on
+  page 1 was gone on page 2, and the content script logged page 2's questions), so the content script re-runs on every
+  page. No `MutationObserver` is needed for page changes, and none is planned unless something else turns out to need one.
+  "Back" hasn't been verified yet; check it the same way before relying on it.
+- **State that must carry across pages** (e.g. "user triggered autofill on page 1") is stored in `chrome.storage.session`,
+  so on each load the content script re-runs parsing, then autofill if that flag is set and suggestions if the mode is Auto.
+  Content scripts can't read `storage.session` by default: either the service worker calls
+  `chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })`, or the content script asks
+  the service worker for the value via a message. No duplicate chips or badges.
 - Error states shown in the popup or chip: offline, proxy down, limit reached, Nano unavailable/downloading,
   AI returned nothing usable, form layout not recognized (0 questions found).
 - Polish: popup layout, an empty-profile hint, and a keyboard-accessible ✓/✕ chip.
 
 **Acceptance**
 - Manual: on fixture form 3 (multi-page), going Next then Back shows suggestions/fills on each page exactly once.
-- Unit test: the observer callback is idempotent. Running it twice on the same DOM adds no duplicate chips.
+- Unit test: the page-load routine is idempotent. Running it twice on the same DOM adds no duplicate chips.
 - Each listed error state can be triggered on purpose (DevTools offline, wrong Worker URL, cap set to 0)
   and shows its message. No uncaught errors appear in the console.
 
@@ -127,4 +134,5 @@ A Chrome extension for Google Forms that (1) fills personal details from a saved
 1. Does `LanguageModel` inference work in an extension service worker? If not, which is better: an offscreen document or the popup? The popup is a poor host because closing it kills inference. (Spike before v0.3.)
 2. Rate limiting: Cloudflare's rate-limiting binding or a Durable Object for the global cap? (Decide in v0.3 planning.)
 3. Do Groq's terms allow serving other users' requests through one key? If not, which provider?
-4. Are dropdown `role="option"` elements in the DOM before the dropdown is opened? Check this in fixture 2; it affects v0.1 parsing.
+4. ~~Are dropdown `role="option"` elements in the DOM before the dropdown is opened?~~ **Resolved (v0.1):** yes, all options are in the DOM before opening. The "Choose" placeholder is the option with `data-value=""`.
+5. Forms with "Collect email addresses" turned on show an Email field that may be `input[type="email"]`, which the short-answer rule (`input[type="text"]`) wouldn't match. Needs a fixture before v0.2.

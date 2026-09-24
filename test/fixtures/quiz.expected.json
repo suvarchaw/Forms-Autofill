@@ -1,0 +1,9 @@
+[
+  { "text": "What is the chemical symbol for water?", "type": "short_answer", "options": [], "required": false },
+  { "text": "Explain what a variable is.", "type": "paragraph", "options": [], "required": false },
+  { "text": "What is the capital of France?", "type": "multiple_choice", "options": ["Berlin", "Paris", "Madrid", "Rome"], "required": true },
+  { "text": "Which of these are prime numbers?", "type": "checkboxes", "options": ["2", "3", "4", "9"], "required": false },
+  { "text": "Which planet is known as the Red Planet?", "type": "dropdown", "options": ["Earth", "Mars", "Venus", "Jupiter"], "required": false },
+  { "text": "How confident are you?", "type": "unsupported", "options": [], "required": false },
+  { "text": "Rate these topics", "type": "unsupported", "options": [], "required": false }
+]

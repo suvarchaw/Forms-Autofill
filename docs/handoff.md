@@ -36,7 +36,7 @@ Chosen over dev-tool ideas despite known concerns (academic-integrity perception
 ## Technical rules
 - Select Forms elements by ARIA role (`[role="listitem"]`, `[role="radio"]`, `[role="checkbox"]`, `[role="listbox"]`), never by obfuscated class names.
 - Text fields: set the value, then dispatch `input` and `change`. Radios and checkboxes: `.click()`.
-- Content script on `docs.google.com/forms/*`. A `MutationObserver` handles multi-page forms.
+- Content script on `docs.google.com/forms/*`. In multi-page forms, "Next" is a full page load, so the content script re-runs on every page and no `MutationObserver` is needed for page changes. State that must carry across pages (e.g. "autofill triggered on page 1") goes in `chrome.storage.session`.
 - Network calls go through the service worker, never the content script. Worker/API URLs go in `host_permissions`.
 - Check `LanguageModel.availability()` first; fall back to the proxy.
 - Profile data stays in `chrome.storage.local` and is never sent to any API.
@@ -55,7 +55,7 @@ Each one is done when: the feature works, tests pass, `LEARNINGS.md` has an entr
 | v0.1 | Detect questions (text, type, options), log them; parser tests pass on saved HTML fixtures of my own forms | Content scripts, ARIA selectors, why fixture tests, Vitest + jsdom |
 | v0.2 | Popup profile + personal-details autofill | Popup ↔ content script messaging, `chrome.storage`, why events must be dispatched |
 | v0.3 | Quiz answers, on click only (Nano, then proxy) | Service worker lifecycle, host permissions, Worker secrets, rate-limit bypass and the global cap |
-| v0.4 | Auto mode, multi-page forms, error states, polish | `MutationObserver`, failure modes, what I'd change at scale |
+| v0.4 | Auto mode, multi-page forms, error states, polish | Content-script lifecycle across full page loads, `chrome.storage.session` and `setAccessLevel`, failure modes, what I'd change at scale |
 
 ## Claude Code workflow
 1. Stay in the permission mode that asks before each edit while learning (Shift+Tab cycles modes; check the indicator below the input box).
