@@ -1,0 +1,15 @@
+[
+  { "text": "Email", "type": "short_answer", "options": [], "required": true },
+  { "text": "Full name", "type": "short_answer", "options": [], "required": true },
+  { "text": "Email address", "type": "short_answer", "options": [], "required": true },
+  { "text": "Phone number", "type": "short_answer", "options": [], "required": true },
+  { "text": "College", "type": "short_answer", "options": [], "required": true },
+  { "text": "Roll number", "type": "short_answer", "options": [], "required": true },
+  { "text": "Father's name", "type": "short_answer", "options": [], "required": false },
+  { "text": "College email", "type": "short_answer", "options": [], "required": false },
+  { "text": "Name of college", "type": "short_answer", "options": [], "required": false },
+  { "text": "Username", "type": "short_answer", "options": [], "required": false },
+  { "text": "Why do you want to join?", "type": "paragraph", "options": [], "required": false },
+  { "text": "Year of study", "type": "dropdown", "options": ["1st year", "2nd year", "3rd year", "4th year"], "required": true },
+  { "text": "Department", "type": "multiple_choice", "options": ["CSE", "ECE", "Mechanical", "Other"], "required": false }
+]

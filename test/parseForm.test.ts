@@ -7,6 +7,8 @@ import quiz from './fixtures/quiz.html?raw';
 import quizExpected from './fixtures/quiz.expected.json?raw';
 import page2 from './fixtures/multipage-p2.html?raw';
 import page2Expected from './fixtures/multipage-p2.expected.json?raw';
+import detailsEmail from './fixtures/details-email.html?raw';
+import detailsEmailExpected from './fixtures/details-email.expected.json?raw';
 
 const parseHtml = (html: string) => parseForm(new DOMParser().parseFromString(html, 'text/html'));
 
@@ -15,6 +17,7 @@ describe('parseForm fixtures', () => {
     ['details', details, detailsExpected],
     ['quiz', quiz, quizExpected],
     ['multipage-p2', page2, page2Expected],
+    ['details-email', detailsEmail, detailsEmailExpected],
   ])('%s', (_, html, expected) => {
     expect(parseHtml(html)).toEqual(JSON.parse(expected));
   });

@@ -3,9 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <title>Forms Autofill</title>
+    <style>
+      body { width: 300px; font: 13px system-ui, sans-serif; margin: 12px; }
+      h1 { font-size: 15px; margin: 0 0 8px; }
+      label { display: block; margin-bottom: 6px; }
+      label input { display: block; width: 100%; box-sizing: border-box; }
+      #custom > div { display: flex; gap: 4px; margin-bottom: 4px; }
+      #custom input { flex: 1; min-width: 0; }
+      fieldset { margin: 8px 0; }
+      #fill { width: 100%; padding: 6px; margin-top: 8px; }
+    </style>
   </head>
   <body>
-    <h1 id="name"></h1>
+    <h1>Forms Autofill</h1>
+    <form id="profile">
+      <label>Name <input name="name" autocomplete="off" /></label>
+      <label>Email <input name="email" type="email" autocomplete="off" /></label>
+      <label>Phone <input name="phone" type="tel" autocomplete="off" /></label>
+      <label>College <input name="college" autocomplete="off" /></label>
+      <label>Roll no. <input name="rollNo" autocomplete="off" /></label>
+      <label>Department / branch <input name="department" autocomplete="off" /></label>
+      <label>Year <input name="year" autocomplete="off" /></label>
+      <label>Section <input name="section" autocomplete="off" /></label>
+      <fieldset>
+        <legend>Custom fields</legend>
+        <div id="custom"></div>
+        <button type="button" id="add">Add field</button>
+      </fieldset>
+    </form>
+    <button type="button" id="fill">Fill my details</button>
+    <p id="status" role="status"></p>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

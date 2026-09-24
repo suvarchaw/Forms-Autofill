@@ -3,15 +3,17 @@ import type { Question, QuestionType } from '../shared/types';
 // Questions are listitems with a level-3 heading. This skips section headers
 // (aria-level 2) and the nested listitems that wrap each checkbox option.
 export function parseForm(root: ParentNode): Question[] {
-  const questions: Question[] = [];
-  for (const item of root.querySelectorAll('[role="listitem"]')) {
-    const heading = item.querySelector('[role="heading"][aria-level="3"]');
-    if (!heading) continue;
-    const { type, options } = detect(item);
-    questions.push({ ...readTitle(heading), type, options });
-  }
-  return questions;
+  return [...root.querySelectorAll('[role="listitem"]')].flatMap((item) => parseItem(item) ?? []);
 }
+
+export function parseItem(item: Element): Question | null {
+  const heading = item.querySelector('[role="heading"][aria-level="3"]');
+  if (!heading) return null;
+  return { ...readTitle(heading), ...detect(item) };
+}
+
+// The "Collect email addresses" field is a normal listitem whose input is type="email".
+export const TEXT_INPUT = 'input[type="text"], input[type="email"]';
 
 // Required questions end with <span aria-label="Required question"> *</span>.
 // Prefer that ARIA label; fall back to a trailing " *".
@@ -43,7 +45,7 @@ function detect(item: Element): { type: QuestionType; options: string[] } {
   const checkboxes = item.querySelectorAll('[role="checkbox"]');
   if (checkboxes.length) return { type: 'checkboxes', options: choiceLabels(checkboxes) };
   if (item.querySelector('textarea')) return { type: 'paragraph', options: [] };
-  if (item.querySelectorAll('input[type="text"]').length === 1) return { type: 'short_answer', options: [] };
+  if (item.querySelectorAll(TEXT_INPUT).length === 1) return { type: 'short_answer', options: [] };
   return unsupported;
 }
 
