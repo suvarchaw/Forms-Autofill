@@ -5,3 +5,19 @@ because then the questions will be checked against the .gs script which is the p
 fixtures- we didnt use html bcs that means that if anything changes it will be the code. using a live form means if anything changes then it will be the google form. basically for unknown form layout errror handling
 iife- content scripts load as plain scripts therefore the import makes them crash at runtime. so we used vite to split the content script into multiple files joined by imports 
 next reloads- we tested window test makrer which came out as undefined. pressing next reloads the entire page so reload wipes the page's memory but past memory will be stored in chrome.storage.session
+
+## v0.2
+
+**messaging** – when i click "Fill my details", the popup only sends a tiny message saying "fill". the content script reads my profile from chrome.storage.local itself and sends back how many it filled and skipped. so my profile never travels in a message, which is safer. if the tab isn't a google form, nothing is listening, so the message fails and the popup says "Open a Google Form first". getting the tab's id doesn't need the "tabs" permission, only its url would.
+
+**events** – just setting input.value only changes what you see on screen. google's form code keeps its own copy of the answers and only updates it when it hears "input" and "change" events. without them the field looks filled but the response sheet would be blank. that's why we submitted the form and checked the responses.
+
+**matching** – questions are matched to profile fields by whole words. the longest match wins, so "Name of college" goes to college, not name. "College email" goes to email because "college email" is one of email's words. if a question has words like father, mother, parent or guardian, it's skipped so my details don't go into someone else's field. if two fields tie, it's skipped too. one field can fill more than one question (like "Email" and "Email address").
+
+**email field** – when a form collects emails, google adds an "Email" field at the top that is an input with type="email", not type="text". the parser had to learn to count it as a short answer.
+
+**storage** – chrome.storage.local saves to disk, so my profile is still there after closing chrome.
+
+**badge bug** – the "not filled" badge was added at the bottom of each question's box, so it sat right above the next question's title and looked like it belonged to that one. the code was right but the page was misleading, and users read the page, not the code. fixed by putting the badge next to the question's own title. i checked which question each badge really belonged to with a console command instead of guessing.
+
+**fixture** – my first capture saved the terminal command instead of the page, because my clipboard had the command in it. the parser found 0 questions and the tests failed straight away, so the tests caught it. the second, real capture passed, which proved claude's rebuilt fixture was accurate. i checked it instead of just trusting it.
