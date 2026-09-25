@@ -1,13 +1,11 @@
 export { Limiter } from './limiter';
+import { ANSWER_SCHEMA, SYSTEM_PROMPT, buildPrompt, cleanAnswers, type QuizQuestion as Question } from '../../shared/quiz';
 
 // Secrets aren't in wrangler.jsonc, so `wrangler types` can't see this one.
 declare global {
   interface Env { GROQ_API_KEY: string }
   namespace Cloudflare { interface Env { GROQ_API_KEY: string } }
 }
-
-type Question = { text: string; options: string[] };
-type Answer = { questionIndex: number; optionIndex: number };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_QUESTIONS = 20;
@@ -38,57 +36,6 @@ export function validate(body: unknown): Question[] | null {
   }
   return qs as Question[];
 }
-
-export function buildPrompt(questions: Question[]): string {
-  return questions
-    .map((q, i) => [`Q${i}: ${q.text}`, ...q.options.map((o, j) => `  ${j}) ${o}`)].join('\n'))
-    .join('\n\n');
-}
-
-// Keeps only well-formed, in-range answers, first one per question. Anything unparseable gives [].
-export function cleanAnswers(content: unknown, questions: Question[]): Answer[] {
-  if (typeof content !== 'string') return [];
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(content.trim());
-  } catch {
-    return [];
-  }
-  const list = (parsed as { answers?: unknown })?.answers;
-  if (!Array.isArray(list)) return [];
-  const seen = new Set<number>();
-  const out: Answer[] = [];
-  for (const a of list) {
-    const q = a?.questionIndex, o = a?.optionIndex;
-    if (!Number.isInteger(q) || !Number.isInteger(o)) continue;
-    if (q < 0 || q >= questions.length || o < 0 || o >= questions[q].options.length || seen.has(q)) continue;
-    seen.add(q);
-    out.push({ questionIndex: q, optionIndex: o });
-  }
-  return out;
-}
-
-const SYSTEM_PROMPT =
-  'You answer multiple-choice quiz questions. For each question, pick the single best option. ' +
-  'Reply with JSON: {"answers": [{"questionIndex": <question number>, "optionIndex": <option number>}]}, ' +
-  'one entry per question, using the numbers shown.';
-
-const ANSWER_SCHEMA = {
-  type: 'object',
-  properties: {
-    answers: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: { questionIndex: { type: 'integer' }, optionIndex: { type: 'integer' } },
-        required: ['questionIndex', 'optionIndex'],
-        additionalProperties: false,
-      },
-    },
-  },
-  required: ['answers'],
-  additionalProperties: false,
-};
 
 async function suggest(request: Request, env: Env): Promise<Response> {
   const installId = request.headers.get('X-Install-Id');

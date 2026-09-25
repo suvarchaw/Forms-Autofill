@@ -11,7 +11,8 @@
       #custom > div { display: flex; gap: 4px; margin-bottom: 4px; }
       #custom input { flex: 1; min-width: 0; }
       fieldset { margin: 8px 0; }
-      #fill { width: 100%; padding: 6px; margin-top: 8px; }
+      #fill, #suggest, #download { width: 100%; padding: 6px; margin-top: 8px; }
+      #mode label { display: inline; margin-right: 8px; }
     </style>
   </head>
   <body>
@@ -32,6 +33,14 @@
       </fieldset>
     </form>
     <button type="button" id="fill">Fill my details</button>
+    <fieldset id="mode">
+      <legend>Quiz suggestions</legend>
+      <label><input type="radio" name="triggerMode" value="off" /> Off</label>
+      <label><input type="radio" name="triggerMode" value="click" /> On click</label>
+      <label><input type="radio" name="triggerMode" value="auto" disabled /> Auto (v0.4)</label>
+    </fieldset>
+    <button type="button" id="suggest">Suggest answers</button>
+    <button type="button" id="download" hidden>Download on-device AI</button>
     <p id="status" role="status"></p>
     <script type="module" src="./main.ts"></script>
   </body>

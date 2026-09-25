@@ -1,4 +1,5 @@
-import type { FillResult, Message } from '../shared/messages';
+import type { AiError, FillResult, Message, SuggestResult } from '../shared/messages';
+import { NANO_OPTS } from '../background/ai';
 import type { Profile, ProfileKey } from '../shared/types';
 
 const form = document.querySelector<HTMLFormElement>('#profile')!;
@@ -51,5 +52,68 @@ document.querySelector('#fill')!.addEventListener('click', async () => {
     status.textContent = `Filled ${res.filled}, skipped ${res.skipped}`;
   } catch {
     status.textContent = 'Open a Google Form first';
+  }
+});
+
+// Quiz suggestions: trigger mode, "Suggest answers", and the one-time Nano download.
+const suggestBtn = document.querySelector<HTMLButtonElement>('#suggest')!;
+const downloadBtn = document.querySelector<HTMLButtonElement>('#download')!;
+const modeInputs = document.querySelectorAll<HTMLInputElement>('input[name="triggerMode"]');
+
+const applyMode = (mode: string) => {
+  for (const input of modeInputs) input.checked = input.value === mode;
+  suggestBtn.disabled = mode === 'off';
+};
+chrome.storage.local.get('triggerMode').then(({ triggerMode }) => applyMode((triggerMode as string | undefined) ?? 'click'));
+for (const input of modeInputs) {
+  input.addEventListener('change', () => {
+    applyMode(input.value);
+    chrome.storage.local.set({ triggerMode: input.value });
+  });
+}
+
+const AI_ERRORS: Record<AiError, string> = {
+  limit: 'Daily AI limit reached — try again tomorrow',
+  unreachable: "Couldn't reach the AI service — check your connection",
+  no_answer: "AI didn't return a usable answer",
+};
+
+suggestBtn.addEventListener('click', async () => {
+  status.textContent = 'Thinking…';
+  let res: SuggestResult;
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    res = await chrome.tabs.sendMessage<Message, SuggestResult>(tab.id!, { type: 'suggest' });
+  } catch {
+    status.textContent = 'Open a Google Form first';
+    return;
+  }
+  if ('error' in res) status.textContent = AI_ERRORS[res.error];
+  else if (!res.count) status.textContent = 'No multiple-choice or dropdown questions found';
+  else status.textContent = `Suggested ${res.count} answers — confirm each with ✓`;
+});
+
+// Shown only when the model can be downloaded. The download must start from a click (user activation),
+// which the service worker never has.
+if (typeof LanguageModel !== 'undefined') {
+  LanguageModel.availability(NANO_OPTS).then((a) => (downloadBtn.hidden = a !== 'downloadable'));
+}
+downloadBtn.addEventListener('click', async () => {
+  downloadBtn.disabled = true;
+  try {
+    const session = await LanguageModel.create({
+      ...NANO_OPTS,
+      monitor(m) {
+        m.addEventListener('downloadprogress', (e) => {
+          status.textContent = `Downloading on-device AI… ${Math.round((e as ProgressEvent).loaded * 100)}%`;
+        });
+      },
+    });
+    session.destroy();
+    downloadBtn.hidden = true;
+    status.textContent = 'On-device AI ready';
+  } catch {
+    downloadBtn.disabled = false;
+    status.textContent = 'Download failed — try again';
   }
 });
