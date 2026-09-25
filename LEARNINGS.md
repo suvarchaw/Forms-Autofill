@@ -26,3 +26,27 @@ next reloads- we tested window test makrer which came out as undefined. pressing
 we tested where gemini nano can run by putting the same test in 4 places: service worker, popup, offscreen page and content script. it worked in all 4. so the AI can live in the service worker like we planned, and we don't need an offscreen page or its extra permission. the first download has to start from a click in the popup. the reply sometimes had a newline at the end ("4\n"), so we need to trim it. we did this on a separate git branch so the test code never touched main — only what we learned comes back.
 ## v0.3 part 1 – the proxy
 the extension never holds the groq key. it talks to my cloudflare worker, and only the worker has the key, saved as a cloudflare secret (typed into the terminal myself, never in code, git, or claude). the worker only accepts questions + options, builds the prompt itself, and checks every request. limits live in one durable object (a single tiny server-side object that counts exactly): a global daily token cap under groq's free limit, and 10 requests a day per install. tokens were the real limit, not requests, because groq allows 1k requests but only 200k tokens a day. the per-install limit can be dodged by making up new ids, so the global cap is what actually protects me. no CORS headers, so websites can't call the worker from a browser. tests fake groq's replies so they never cost anything. i also blocked claude code from reading my secret files with .claude/settings.json.
+## v0.3 part 2 – quiz suggestions
+"suggest answers" collects the multiple-choice and dropdown questions, the service worker picks the AI (gemini nano if it's available on my laptop, otherwise my proxy), and the page shows an "AI pick ✓ / ✕" chip. nothing is selected until i click ✓, and nothing is ever submitted.
+
+**one source of truth** – the prompt, the answer format and the answer checker live in one shared file used by both the worker and the extension, so they can't drift apart.
+
+**no silent fallback** – if nano fails, it shows an error instead of quietly sending my questions to the proxy, because someone with nano expects their questions to stay on their laptop.
+
+**type="button"** – the chip sits inside google's form, and a normal button inside a form submits it. type="button" stops that.
+
+**forceProxy** – my mac has nano, so i'd never see the fallback working. a hidden flag in storage forces the proxy so i could test it.
+
+**the dropdown bug** – tests passed but the real dropdown didn't pick mars. the test only checked that .click() was called, not that google's dropdown reacted. claude reproduced it, logged every event, and found two things: clicking the dropdown box does nothing (you have to click the currently selected option to open it), and the mars click fired before it finished opening. the fix waits for aria-expanded="true" with a MutationObserver, then clicks. if it never opens, the chip stays so the failure is visible. lesson: passing tests ≠ working in the real browser, and a test that copies google's behaviour breaks silently if google changes.
+## v0.3 part 2 – quiz suggestions
+"suggest answers" collects the multiple-choice and dropdown questions, the service worker picks the AI (gemini nano if it's available on my laptop, otherwise my proxy), and the page shows an "AI pick ✓ / ✕" chip. nothing is selected until i click ✓, and nothing is ever submitted.
+
+**one source of truth** – the prompt, the answer format and the answer checker live in one shared file used by both the worker and the extension, so they can't drift apart.
+
+**no silent fallback** – if nano fails, it shows an error instead of quietly sending my questions to the proxy, because someone with nano expects their questions to stay on their laptop.
+
+**type="button"** – the chip sits inside google's form, and a normal button inside a form submits it. type="button" stops that.
+
+**forceProxy** – my mac has nano, so i'd never see the fallback working. a hidden flag in storage forces the proxy so i could test it.
+
+**the dropdown bug** – tests passed but the real dropdown didn't pick mars. the test only checked that .click() was called, not that google's dropdown reacted. claude reproduced it, logged every event, and found two things: clicking the dropdown box does nothing (you have to click the currently selected option to open it), and the mars click fired before it finished opening. the fix waits for aria-expanded="true" with a MutationObserver, then clicks. if it never opens, the chip stays so the failure is visible. lesson: passing tests ≠ working in the real browser, and a test that copies google's behaviour breaks silently if google changes.
