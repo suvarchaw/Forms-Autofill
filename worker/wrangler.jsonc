@@ -1,0 +1,16 @@
+// GROQ_API_KEY is a secret: `wrangler secret put GROQ_API_KEY`. Never put it in this file.
+{
+  "name": "forms-autofill-proxy",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "vars": {
+    "MODEL": "openai/gpt-oss-120b",
+    "DAILY_TOKEN_CAP": "150000",
+    "PER_INSTALL_DAILY": "10"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "LIMITER", "class_name": "Limiter" }]
+  },
+  // Workers Free plan only allows SQLite-backed Durable Objects.
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Limiter"] }]
+}
