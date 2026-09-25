@@ -3,3 +3,5 @@ dist/
 .env
 .dev.vars
 .wrangler/
+.chrome-for-testing/
+.chrome-profile/

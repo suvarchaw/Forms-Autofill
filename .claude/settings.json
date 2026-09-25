@@ -1,5 +1,5 @@
 {
   "permissions": {
-    "deny": ["Read(./.env)", "Read(./.dev.vars)", "Read(./worker/.dev.vars)"]
+    "deny": ["Read(./.env)", "Read(./.dev.vars)", "Read(./worker/.dev.vars)", "Read(./.chrome-profile/**)"]
   }
 }
