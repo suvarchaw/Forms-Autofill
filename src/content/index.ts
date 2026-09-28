@@ -1,7 +1,8 @@
-import type { Message, WorkerMessage } from '../shared/messages';
+import type { FillResult, Message, WorkerMessage } from '../shared/messages';
 import type { Profile } from '../shared/types';
 import { fillForm } from './fill';
 import { formIdFrom, onPageLoad, suggest } from './pageLoad';
+import { layoutNotRecognized } from './parseForm';
 
 // Verified live (signed in): at 'interactive' Google still re-renders the questions, so wait for 'complete'.
 if (document.readyState === 'complete') onPageLoad(document, location.href);
@@ -9,6 +10,10 @@ else addEventListener('load', () => onPageLoad(document, location.href), { once:
 
 chrome.runtime.onMessage.addListener((msg: Message, _sender, sendResponse) => {
   if (msg.type === 'fillDetails') {
+    if (layoutNotRecognized(document)) {
+      sendResponse({ error: 'layout' } satisfies FillResult);
+      return;
+    }
     chrome.storage.local.get('profile').then(async ({ profile }) => {
       const result = fillForm(document, (profile as Profile | undefined) ?? {});
       const formId = formIdFrom(location.href);

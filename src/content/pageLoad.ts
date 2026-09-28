@@ -1,19 +1,29 @@
-import type { AnswersResult, SuggestResult, WorkerMessage } from '../shared/messages';
+import { ERRORS, type AnswersResult, type SuggestResult, type WorkerMessage } from '../shared/messages';
 import type { Profile } from '../shared/types';
 import { fillForm } from './fill';
-import { collectQuiz, showSuggestions } from './suggest';
+import { layoutNotRecognized } from './parseForm';
+import { collectQuiz, showNote, showSuggestions } from './suggest';
 
 // Same ID on /viewform and on /formResponse (the URL after "Next"). Signed in, Next adds /u/<n>/ (verified live).
 export const formIdFrom = (url: string) => url.match(/\/forms\/(?:u\/\d+\/)?d\/(?:e\/)?([\w-]+)/)?.[1] ?? null;
 
 const REAPPLY_MS = 10_000;
+const NOTE_MS = 6_000;
 
+// nanoOnly: Auto mode, which also shows "AI thinking…" on the page (the popup shows its own).
 export async function suggest(root: ParentNode, nanoOnly = false): Promise<SuggestResult> {
+  if (layoutNotRecognized(root)) return { error: 'layout' };
   const { items, questions } = collectQuiz(root);
   if (!questions.length) return { count: 0 };
   // Network and AI calls happen in the service worker; this sends only question text and options.
   const msg: WorkerMessage = nanoOnly ? { type: 'getAnswers', questions, nanoOnly } : { type: 'getAnswers', questions };
-  const res = await chrome.runtime.sendMessage<WorkerMessage, AnswersResult>(msg);
+  const thinking = nanoOnly ? showNote('AI thinking…') : null;
+  let res: AnswersResult;
+  try {
+    res = await chrome.runtime.sendMessage<WorkerMessage, AnswersResult>(msg);
+  } finally {
+    thinking?.remove();
+  }
   if ('error' in res) return res;
   let shown = showSuggestions(items, res.answers);
   // Verified live (signed in): Google re-renders inside the listitems after load and drops our chips.
@@ -41,5 +51,13 @@ export async function onPageLoad(doc: Document, url: string) {
     fillForm(doc, (profile as Profile | undefined) ?? {});
   }
   const { triggerMode } = await chrome.storage.local.get('triggerMode');
-  if (triggerMode === 'auto') await suggest(doc, true); // errors stay silent until v0.4 part 2
+  if (triggerMode !== 'auto') return;
+  const res = await suggest(doc, true);
+  if (!('error' in res)) return; // chips, or no multiple-choice questions (normal on details forms)
+  // Nano's state is the same on every page, so its errors show once per tab. The rest are about this page.
+  const { error } = res;
+  if (error === 'nano_unavailable' || error === 'nano_downloading') {
+    if (!(await chrome.runtime.sendMessage<WorkerMessage, boolean>({ type: 'noteOnce', error }))) return;
+  }
+  showNote(`Forms Autofill: ${ERRORS[error]}`, NOTE_MS);
 }

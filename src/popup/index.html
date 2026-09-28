@@ -13,6 +13,7 @@
       fieldset { margin: 8px 0; }
       #fill, #suggest, #download { width: 100%; padding: 6px; margin-top: 8px; }
       #mode label { display: inline; margin-right: 8px; }
+      #fill-hint { margin: 4px 0 0; color: #5f6368; }
     </style>
   </head>
   <body>
@@ -32,7 +33,8 @@
         <button type="button" id="add">Add field</button>
       </fieldset>
     </form>
-    <button type="button" id="fill">Fill my details</button>
+    <button type="button" id="fill" aria-describedby="fill-hint">Fill my details</button>
+    <p id="fill-hint" hidden>Add your details first</p>
     <fieldset id="mode">
       <legend>Quiz suggestions</legend>
       <label><input type="radio" name="triggerMode" value="off" /> Off</label>

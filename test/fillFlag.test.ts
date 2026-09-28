@@ -1,5 +1,5 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import { rememberFill, shouldFill } from '../src/background/fillFlag';
+import { noteOnce, rememberFill, shouldFill } from '../src/background/fillFlag';
 import { formIdFrom } from '../src/content/pageLoad';
 
 let store: Record<string, unknown>;
@@ -34,6 +34,13 @@ test('stale flag → false and removed', async () => {
 test('another form or no flag → false', async () => {
   await rememberFill('abc', 0);
   expect(await shouldFill('xyz', 1)).toBe(false);
+});
+
+test('noteOnce: true the first time per tab and error, then false', async () => {
+  expect(await noteOnce(7, 'nano_unavailable')).toBe(true);
+  expect(await noteOnce(7, 'nano_unavailable')).toBe(false);
+  expect(await noteOnce(7, 'nano_downloading')).toBe(true); // a different error is new news
+  expect(await noteOnce(8, 'nano_unavailable')).toBe(true); // another tab
 });
 
 test('formIdFrom', () => {

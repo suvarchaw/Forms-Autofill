@@ -28,6 +28,7 @@ export type Shown = { answer: Answer; chip: HTMLElement; outlined: HTMLElement; 
 
 // Outlines each pick and adds an "AI pick" chip. Selects nothing: only the user's ✓ does.
 export function showSuggestions(items: Element[], answers: Answer[]): Shown[] {
+  addFocusStyle();
   for (const clear of clearAll) clear();
   clearAll = [];
   const shown: Shown[] = [];
@@ -68,11 +69,11 @@ export function showSuggestions(items: Element[], answers: Answer[]): Shown[] {
       chip.remove();
     };
     chip.append(
-      button('✓', 'Use AI pick', async () => {
+      button('✓', `Accept AI pick: ${label}`, async () => {
         // Keep the chip if the dropdown never opened, so the user sees nothing was picked.
         if ((await select()) !== false) clear();
       }),
-      button('✕', 'Dismiss AI pick', clear),
+      button('✕', `Dismiss AI pick: ${label}`, clear),
     );
     // Next to the heading, not inside it: the heading's text is the question the parser reads.
     item.querySelector('[role="heading"][aria-level="3"]')!.after(chip);
@@ -107,4 +108,29 @@ function button(text: string, ariaLabel: string, onClick: () => void) {
     onClick();
   });
   return b;
+}
+
+// Inline styles can't target :focus-visible, so one <style> for keyboard focus on the chip buttons.
+// !important: Google's own CSS may remove button outlines.
+function addFocusStyle() {
+  if (document.querySelector('style[data-fa-style]')) return;
+  const style = document.createElement('style');
+  style.dataset.faStyle = '';
+  style.textContent = '[data-fa-chip] button:focus-visible{outline:2px solid #174ea6 !important;outline-offset:2px}';
+  document.head.append(style);
+}
+
+// A small note in the page corner for Auto mode: "AI thinking…" and errors. Not clickable,
+// so it never gets in the way of the form. Replaces any earlier note.
+export function showNote(text: string, ms?: number): HTMLElement {
+  document.querySelector('[data-fa-note]')?.remove();
+  const note = document.createElement('div');
+  note.dataset.faNote = '';
+  note.setAttribute('role', 'status');
+  note.textContent = text;
+  note.style.cssText =
+    'position:fixed;right:16px;bottom:16px;z-index:2147483647;pointer-events:none;padding:6px 10px;border-radius:8px;font:13px sans-serif;background:#e8f0fe;color:#174ea6;box-shadow:0 1px 3px rgba(0,0,0,.3)';
+  document.body.append(note);
+  if (ms) setTimeout(() => note.remove(), ms);
+  return note;
 }

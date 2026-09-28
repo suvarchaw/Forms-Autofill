@@ -68,3 +68,7 @@ export function isLinearScale(labels: string[]): boolean {
   if (start !== 0 && start !== 1) return false;
   return labels.every((label, i) => label === String(start + i));
 }
+
+// A form page where the parser finds nothing: Google likely changed the markup.
+// Needs a <form> so the post-submit "response recorded" page (also /formResponse) doesn't count.
+export const layoutNotRecognized = (root: ParentNode) => !!root.querySelector('form') && parseForm(root).length === 0;

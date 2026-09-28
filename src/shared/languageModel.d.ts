@@ -7,6 +7,7 @@ type LanguageModelOptions = {
 
 interface LanguageModelSession {
   prompt(input: string, options?: { responseConstraint?: object }): Promise<string>;
+  clone(): Promise<LanguageModelSession>;
   destroy(): void;
 }
 

@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { describe, expect, test } from 'vitest';
-import { parseForm } from '../src/content/parseForm';
+import { layoutNotRecognized, parseForm } from '../src/content/parseForm';
 import details from './fixtures/details.html?raw';
 import detailsExpected from './fixtures/details.expected.json?raw';
 import quiz from './fixtures/quiz.html?raw';
@@ -38,4 +38,17 @@ describe('linear scale vs multiple choice', () => {
   test('3,4,5,6 is multiple choice', () => expect(typeOf(range(3, 6))).toBe('multiple_choice'));
   // Documented tradeoff: an MC question with answers "1".."4" looks exactly like a scale.
   test('"1","2","3","4" is treated as a scale', () => expect(typeOf(['1', '2', '3', '4'])).toBe('unsupported'));
+});
+
+describe('layoutNotRecognized', () => {
+  const doc = (html: string) => new DOMParser().parseFromString(html, 'text/html');
+  test('a form with no listitems (Google changed the markup) → true', () => {
+    const d = doc(quiz);
+    for (const el of d.querySelectorAll('[role="listitem"]')) el.removeAttribute('role');
+    expect(layoutNotRecognized(d)).toBe(true);
+  });
+  test('the quiz fixture → false', () => expect(layoutNotRecognized(doc(quiz))).toBe(false));
+  // The post-submit "Your response has been recorded" page is also /formResponse.
+  test('no <form> on the page → false', () =>
+    expect(layoutNotRecognized(doc('<div>Your response has been recorded.</div>'))).toBe(false));
 });

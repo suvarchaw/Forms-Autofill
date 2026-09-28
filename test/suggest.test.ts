@@ -16,7 +16,7 @@ const setup = () => {
     { questionIndex: 1, optionIndex: 1 },
   ]);
   const chips = [...document.querySelectorAll<HTMLElement>('[data-fa-chip]')];
-  const btn = (chip: HTMLElement, label: string) => chip.querySelector<HTMLButtonElement>(`button[aria-label="${label}"]`)!;
+  const btn = (chip: HTMLElement, action: 'Accept' | 'Dismiss') => chip.querySelector<HTMLButtonElement>(`button[aria-label^="${action} AI pick"]`)!;
   return { clicks, questions, chips, btn };
 };
 
@@ -37,9 +37,25 @@ test('suggestions add chips but select nothing', () => {
 
 const settle = () => new Promise((r) => setTimeout(r, 10));
 
+test('chip buttons are focusable and say what they do', () => {
+  const { chips } = setup();
+  const labels = chips.map((c) => [...c.querySelectorAll('button')].map((b) => b.getAttribute('aria-label')));
+  expect(labels).toEqual([
+    ['Accept AI pick: Paris', 'Dismiss AI pick: Paris'],
+    ['Accept AI pick: Mars', 'Dismiss AI pick: Mars'],
+  ]);
+  const b = chips[0].querySelector('button')!;
+  b.focus();
+  expect(document.activeElement).toBe(b);
+  // One focus-outline style, however many times suggestions are shown.
+  showSuggestions(collectQuiz(document).items, [{ questionIndex: 0, optionIndex: 1 }]);
+  expect(document.querySelectorAll('style[data-fa-style]')).toHaveLength(1);
+  expect(document.querySelector('style[data-fa-style]')!.textContent).toContain('[data-fa-chip] button:focus-visible');
+});
+
 test('✓ on MC clicks exactly the suggested radio', async () => {
   const { clicks, chips, btn } = setup();
-  btn(chips[0], 'Use AI pick').click();
+  btn(chips[0], 'Accept').click();
   await settle();
   expect(clicks).toEqual(['radio:Paris']);
   expect(document.querySelectorAll('[data-fa-chip]')).toHaveLength(1);
@@ -65,7 +81,7 @@ test('✓ on dropdown opens it via the selected option, then selects the suggest
   const listbox = document.querySelectorAll('[role="listbox"]')[0];
   fakeGoogleDropdown(listbox);
 
-  btn(chips[1], 'Use AI pick').click();
+  btn(chips[1], 'Accept').click();
   await settle();
 
   expect(listbox.querySelector('[aria-selected="true"]')!.getAttribute('data-value')).toBe('Mars');
@@ -77,7 +93,7 @@ test('✓ on dropdown opens it via the selected option, then selects the suggest
 test('✓ on dropdown that never opens clicks no option and keeps the chip', async () => {
   vi.useFakeTimers();
   const { clicks, chips, btn } = setup();
-  btn(chips[1], 'Use AI pick').click();
+  btn(chips[1], 'Accept').click();
   await vi.advanceTimersByTimeAsync(2000);
   vi.useRealTimers();
 
@@ -87,7 +103,7 @@ test('✓ on dropdown that never opens clicks no option and keeps the chip', asy
 
 test('✕ removes chip and outline without clicking anything', () => {
   const { clicks, chips, btn } = setup();
-  btn(chips[0], 'Dismiss AI pick').click();
+  btn(chips[0], 'Dismiss').click();
   expect(clicks).toEqual([]);
   expect(document.querySelectorAll('[data-fa-chip]')).toHaveLength(1);
   expect([...document.querySelectorAll<HTMLElement>('*')].filter((el) => el.style.outline)).toHaveLength(1);

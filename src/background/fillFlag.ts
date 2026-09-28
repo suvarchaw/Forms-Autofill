@@ -22,3 +22,12 @@ export async function shouldFill(formId: string, now = Date.now()): Promise<bool
   await rememberFill(formId, now);
   return true;
 }
+
+// Auto's Nano errors are the same on every page, so the page note shows once per tab.
+// True the first time for this tab + error. ponytail: entries for closed tabs stay until the browser closes (a few bytes each).
+export async function noteOnce(tabId: number, error: string): Promise<boolean> {
+  const k = `note:${tabId}:${error}`;
+  if ((await chrome.storage.session.get(k))[k]) return false;
+  await chrome.storage.session.set({ [k]: true });
+  return true;
+}
