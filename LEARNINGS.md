@@ -50,3 +50,13 @@ the extension never holds the groq key. it talks to my cloudflare worker, and on
 **forceProxy** – my mac has nano, so i'd never see the fallback working. a hidden flag in storage forces the proxy so i could test it.
 
 **the dropdown bug** – tests passed but the real dropdown didn't pick mars. the test only checked that .click() was called, not that google's dropdown reacted. claude reproduced it, logged every event, and found two things: clicking the dropdown box does nothing (you have to click the currently selected option to open it), and the mars click fired before it finished opening. the fix waits for aria-expanded="true" with a MutationObserver, then clicks. if it never opens, the chip stays so the failure is visible. lesson: passing tests ≠ working in the real browser, and a test that copies google's behaviour breaks silently if google changes.
+## v0.4 part 1 – auto mode + multi-page
+**auto uses nano only** – auto runs by itself on every form, so it only uses the on-device AI. the proxy is only used after a click, so nothing leaves my laptop without me clicking. this rule is enforced in the service worker, the one place every AI request passes through.
+
+**remembering fill across pages** – "fill my details" saves a flag for that form in chrome.storage.session. the content script asks the service worker for it by message (content scripts can't read session storage). the flag expires after 30 min, because attendance forms reuse the same form id and people never close chrome.
+
+**the url tells you how you got there** – /formResponse means next or back, so keep filling. /viewform means a fresh open, reload or "clear form", so forget the flag. this fixed "clear form doesn't clear": clear reloads the page and my own flag was refilling it.
+
+**signed-in bugs** – everything worked in incognito but not signed in (an A/B test: same browser, one difference). debug logs found two causes: signed-in urls have /u/0/ in them so the form id wasn't found, and my code ran before the page finished loading so google redrew the questions and wiped my chips. fixes: allow /u/0/, wait for the page to finish, and redraw chips from saved answers for 10 seconds (no new AI call, and ✕'d chips stay gone). i dropped the /u/0/ idea too early after one check. logs from the real failing run beat one-off checks.
+
+**guardrails, not walls** – claude read my normal chrome's files through a python command. deny rules only block the read tool, not shell commands. real protection = keep secrets out of reach, review plans, manual mode for sensitive work.
