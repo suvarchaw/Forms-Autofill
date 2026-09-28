@@ -64,7 +64,7 @@ A Chrome extension for Google Forms that (1) fills personal details from a saved
 - Manual: profile data survives closing the browser.
 
 ### v0.3: Quiz suggestions on click (Nano, then proxy)
-- The popup has a trigger mode setting: **Off / On click (default) / Auto** (Auto is enabled in v0.4).
+- The popup has a trigger mode setting: **Off / On click (default) / Auto** (Auto is enabled in v0.4; see below).
 - "Suggest answers" batches all **multiple-choice and dropdown** questions on the page into one request. The
   response is a JSON array of `{ questionIndex, optionIndex }`.
 - AI path: check `LanguageModel.availability()` → use Nano if it's available → otherwise send the request through the
@@ -89,15 +89,29 @@ A Chrome extension for Google Forms that (1) fills personal details from a saved
 
 ### v0.4: Auto mode, multi-page, errors, polish
 - **Auto mode = auto-suggest only**: suggestions appear on page load and on each new form page, and every pick still needs ✓.
+- **Auto uses Gemini Nano only. The proxy is only ever used after a user click** ("Suggest answers"). Auto page loads send
+  `getAnswers` with `nanoOnly: true`, and the service worker returns `nano_unavailable` before any fetch if Nano isn't
+  `"available"` (or `forceProxy` is set), so no question leaves the device without a click. If Nano isn't available, Auto does nothing
+  and the popup shows "Auto needs on-device AI — use Suggest answers instead".
 - **Multi-page forms need no page-change detection.** "Next" is a full page load (verified: a `window` marker set on
   page 1 was gone on page 2, and the content script logged page 2's questions), so the content script re-runs on every
   page. No `MutationObserver` is needed for page changes, and none is planned unless something else turns out to need one.
-  "Back" hasn't been verified yet; check it the same way before relying on it.
+  **"Back" verified (Chrome for Testing, signed out):** also a full load to `/formResponse`. The `window` marker was gone, the navigation type was
+  `navigate`, and the routine ran once. Page 1, then Next again: 0 duplicate chips, badges or outlines.
 - **State that must carry across pages** (e.g. "user triggered autofill on page 1") is stored in `chrome.storage.session`,
   so on each load the content script re-runs parsing, then autofill if that flag is set and suggestions if the mode is Auto.
   Content scripts can't read `storage.session` by default: either the service worker calls
   `chrome.storage.session.setAccessLevel({ accessLevel: 'TRUSTED_AND_UNTRUSTED_CONTEXTS' })`, or the content script asks
   the service worker for the value via a message. No duplicate chips or badges.
+  **Chosen: messages.** `storage.session` stays closed to content scripts (no `setAccessLevel`). Clicking "Fill my details"
+  makes the content script send `rememberFill {formId}`, and the service worker stores `fill:<formId>` = timestamp. On each
+  load the content script asks `shouldFill {formId}`. The form ID comes from the URL (`/forms/d/e/<id>/viewform` or `/formResponse`).
+  **Expiry: 30 min, sliding** (each auto-filled page resets it), on top of `storage.session` clearing when the browser closes.
+  Why: daily forms like attendance reuse the same form ID, and many people never close Chrome, so a session-only flag
+  would fill tomorrow's form without a click.
+  **Only `/formResponse` pages auto-fill.** Next and Back load `/formResponse`; first open, reload and Google's "Clear form"
+  load `/viewform` (verified live). A `/viewform` load sends `forgetFill` and fills nothing, so "Clear form" stays cleared
+  and doesn't come back on later pages.
 - Error states shown in the popup or chip: offline, proxy down, limit reached, Nano unavailable/downloading,
   AI returned nothing usable, form layout not recognized (0 questions found).
 - Polish: popup layout, an empty-profile hint, and a keyboard-accessible ✓/✕ chip.

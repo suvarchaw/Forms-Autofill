@@ -90,6 +90,18 @@ describe('backend choice', () => {
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
+  // Auto mode: without a ready Nano, nothing is created and nothing leaves the device.
+  test.each([
+    ['downloadable', false],
+    ['available', true], // forceProxy set
+  ])('nanoOnly with Nano %s (forceProxy %s) → nano_unavailable, no network', async (availability, forceProxy) => {
+    stubNano(availability);
+    store.forceProxy = forceProxy;
+    expect(await getAnswers(questions, true)).toEqual({ error: 'nano_unavailable' });
+    expect(create).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   test('no LanguageModel at all → proxy', async () => {
     await getAnswers(questions);
     expect(fetchMock).toHaveBeenCalledOnce();

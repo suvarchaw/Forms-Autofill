@@ -23,10 +23,14 @@ export function collectQuiz(root: ParentNode): { items: Element[]; questions: Qu
 
 let clearAll: (() => void)[] = [];
 
+// cleared: removed by us (✓, ✕, or replaced by a newer showSuggestions), as opposed to by Google's re-render.
+export type Shown = { answer: Answer; chip: HTMLElement; outlined: HTMLElement; cleared: boolean };
+
 // Outlines each pick and adds an "AI pick" chip. Selects nothing: only the user's ✓ does.
-export function showSuggestions(items: Element[], answers: Answer[]) {
+export function showSuggestions(items: Element[], answers: Answer[]): Shown[] {
   for (const clear of clearAll) clear();
   clearAll = [];
+  const shown: Shown[] = [];
 
   for (const { questionIndex, optionIndex } of answers) {
     const item = items[questionIndex];
@@ -57,7 +61,9 @@ export function showSuggestions(items: Element[], answers: Answer[]) {
     chip.dataset.faChip = '';
     chip.textContent = `AI pick: ${label} `;
     chip.style.cssText = 'display:inline-block;margin:4px 0;padding:1px 6px;border-radius:8px;font:12px sans-serif;background:#e8f0fe;color:#174ea6';
+    const entry: Shown = { answer: { questionIndex, optionIndex }, chip, outlined, cleared: false };
     const clear = () => {
+      entry.cleared = true;
       outlined.style.outline = '';
       chip.remove();
     };
@@ -71,7 +77,9 @@ export function showSuggestions(items: Element[], answers: Answer[]) {
     // Next to the heading, not inside it: the heading's text is the question the parser reads.
     item.querySelector('[role="heading"][aria-level="3"]')!.after(chip);
     clearAll.push(clear);
+    shown.push(entry);
   }
+  return shown;
 }
 
 // True once the listbox reports aria-expanded="true"; false after 2s so ✓ never hangs.

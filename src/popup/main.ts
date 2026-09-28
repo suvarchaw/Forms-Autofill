@@ -60,9 +60,12 @@ const suggestBtn = document.querySelector<HTMLButtonElement>('#suggest')!;
 const downloadBtn = document.querySelector<HTMLButtonElement>('#download')!;
 const modeInputs = document.querySelectorAll<HTMLInputElement>('input[name="triggerMode"]');
 
-const applyMode = (mode: string) => {
+const applyMode = async (mode: string) => {
   for (const input of modeInputs) input.checked = input.value === mode;
   suggestBtn.disabled = mode === 'off';
+  // Auto never uses the proxy (the service worker enforces it), so without Nano it does nothing.
+  const nano = typeof LanguageModel !== 'undefined' && (await LanguageModel.availability(NANO_OPTS)) === 'available';
+  if (mode === 'auto' && !nano) status.textContent = 'Auto needs on-device AI — use Suggest answers instead';
 };
 chrome.storage.local.get('triggerMode').then(({ triggerMode }) => applyMode((triggerMode as string | undefined) ?? 'click'));
 for (const input of modeInputs) {
@@ -76,6 +79,7 @@ const AI_ERRORS: Record<AiError, string> = {
   limit: 'Daily AI limit reached — try again tomorrow',
   unreachable: "Couldn't reach the AI service — check your connection",
   no_answer: "AI didn't return a usable answer",
+  nano_unavailable: 'On-device AI is not available',
 };
 
 suggestBtn.addEventListener('click', async () => {

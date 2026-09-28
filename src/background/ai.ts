@@ -11,10 +11,13 @@ export const NANO_OPTS: LanguageModelOptions = {
 };
 
 // Nano if it's ready on this device, else the proxy. forceProxy is a dev-only switch to test the fallback.
-export async function getAnswers(questions: QuizQuestion[]): Promise<AnswersResult> {
+// nanoOnly (Auto mode): never the proxy; questions only leave the device after a user click.
+export async function getAnswers(questions: QuizQuestion[], nanoOnly = false): Promise<AnswersResult> {
   const { forceProxy } = await chrome.storage.local.get('forceProxy');
   const useNano =
     !forceProxy && typeof LanguageModel !== 'undefined' && (await LanguageModel.availability(NANO_OPTS)) === 'available';
+
+  if (nanoOnly && !useNano) return { error: 'nano_unavailable' };
 
   let raw: unknown;
   if (useNano) {
