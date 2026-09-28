@@ -1,5 +1,6 @@
 import type { Answer, QuizQuestion } from '../shared/messages';
 import { parseItem } from './parseForm';
+import { chip as makeChip } from './ui';
 
 // The Worker rejects a whole batch past these limits, so leave such questions out.
 const MAX_QUESTIONS = 20;
@@ -28,7 +29,6 @@ export type Shown = { answer: Answer; chip: HTMLElement; outlined: HTMLElement; 
 
 // Outlines each pick and adds an "AI pick" chip. Selects nothing: only the user's ✓ does.
 export function showSuggestions(items: Element[], answers: Answer[]): Shown[] {
-  addFocusStyle();
   for (const clear of clearAll) clear();
   clearAll = [];
   const shown: Shown[] = [];
@@ -57,24 +57,21 @@ export function showSuggestions(items: Element[], answers: Answer[]): Shown[] {
       select = () => radio.click();
     }
 
-    outlined.style.outline = '2px solid #1a73e8';
-    const chip = document.createElement('span');
-    chip.dataset.faChip = '';
-    chip.textContent = `AI pick: ${label} `;
-    chip.style.cssText = 'display:inline-block;margin:4px 0;padding:1px 6px;border-radius:8px;font:12px sans-serif;background:#e8f0fe;color:#174ea6';
+    outlined.style.outline = '2px solid #4F46E5'; // AI indigo; inline because it's Google's element
+    const chip = makeChip(
+      label,
+      async () => {
+        // Keep the chip if the dropdown never opened, so the user sees nothing was picked.
+        if ((await select()) !== false) clear();
+      },
+      () => clear(),
+    );
     const entry: Shown = { answer: { questionIndex, optionIndex }, chip, outlined, cleared: false };
     const clear = () => {
       entry.cleared = true;
       outlined.style.outline = '';
       chip.remove();
     };
-    chip.append(
-      button('✓', `Accept AI pick: ${label}`, async () => {
-        // Keep the chip if the dropdown never opened, so the user sees nothing was picked.
-        if ((await select()) !== false) clear();
-      }),
-      button('✕', `Dismiss AI pick: ${label}`, clear),
-    );
     // Next to the heading, not inside it: the heading's text is the question the parser reads.
     item.querySelector('[role="heading"][aria-level="3"]')!.after(chip);
     clearAll.push(clear);
@@ -96,41 +93,4 @@ function expanded(listbox: Element): Promise<boolean> {
     observer.observe(listbox, { attributes: true, attributeFilter: ['aria-expanded'] });
     const timer = setTimeout(() => done(false), 2000);
   });
-}
-
-function button(text: string, ariaLabel: string, onClick: () => void) {
-  const b = document.createElement('button');
-  b.type = 'button'; // the chip sits inside Google's <form>; a default button would submit it
-  b.textContent = text;
-  b.setAttribute('aria-label', ariaLabel);
-  b.addEventListener('click', (e) => {
-    e.stopPropagation();
-    onClick();
-  });
-  return b;
-}
-
-// Inline styles can't target :focus-visible, so one <style> for keyboard focus on the chip buttons.
-// !important: Google's own CSS may remove button outlines.
-function addFocusStyle() {
-  if (document.querySelector('style[data-fa-style]')) return;
-  const style = document.createElement('style');
-  style.dataset.faStyle = '';
-  style.textContent = '[data-fa-chip] button:focus-visible{outline:2px solid #174ea6 !important;outline-offset:2px}';
-  document.head.append(style);
-}
-
-// A small note in the page corner for Auto mode: "AI thinking…" and errors. Not clickable,
-// so it never gets in the way of the form. Replaces any earlier note.
-export function showNote(text: string, ms?: number): HTMLElement {
-  document.querySelector('[data-fa-note]')?.remove();
-  const note = document.createElement('div');
-  note.dataset.faNote = '';
-  note.setAttribute('role', 'status');
-  note.textContent = text;
-  note.style.cssText =
-    'position:fixed;right:16px;bottom:16px;z-index:2147483647;pointer-events:none;padding:6px 10px;border-radius:8px;font:13px sans-serif;background:#e8f0fe;color:#174ea6;box-shadow:0 1px 3px rgba(0,0,0,.3)';
-  document.body.append(note);
-  if (ms) setTimeout(() => note.remove(), ms);
-  return note;
 }

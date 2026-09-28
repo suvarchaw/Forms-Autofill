@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>On the form page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#EEEDF2;color:#1F1F1E}
+a{color:#4F46E5}a:hover{color:#3730A3}
+</style>
+</helmet>
+<div style="width: 760px; height: 760px; box-sizing: border-box; padding: 40px 60px; display: flex; flex-direction: column; gap: 14px; background: #EEEDF2; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1F1F1E">
+
+  <section style="background: #FFFFFF; border: 1px solid #E1E0E6; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 16px; font-weight: 500">What is the capital of France? <span style="color: #B42318">*</span></h2>
+      <div style="display: flex">
+        <div style="display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 3px 0 10px; border: 1px solid #C7D2FE; border-radius: 999px; background: #EEF2FF; color: #3730A3; font-size: 13px; font-weight: 500">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4"></path><path d="M12 17v4"></path><path d="M3 12h4"></path><path d="M17 12h4"></path><path d="M12 8l1.5 2.5L16 12l-2.5 1.5L12 16l-1.5-2.5L8 12l2.5-1.5z"></path></svg>
+          <span>AI pick: Paris</span>
+          <span style="width: 1px; height: 16px; background: #C7D2FE"></span>
+          <button type="button" aria-label="Accept AI pick: Paris" style="width: 26px; height: 26px; border: none; border-radius: 999px; background: #4F46E5; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+          </button>
+          <button type="button" aria-label="Dismiss AI pick" style="width: 26px; height: 26px; border: none; border-radius: 999px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3730A3" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div role="radiogroup" aria-label="What is the capital of France?" style="display: flex; flex-direction: column; gap: 4px">
+      <label style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; font-size: 14px; border: 2px solid transparent; border-radius: 8px"><input type="radio" name="capital"> Berlin</label>
+      <label style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; font-size: 14px; border: 2px solid #4F46E5; border-radius: 8px; background: #F7F8FF"><input type="radio" name="capital"> Paris</label>
+      <label style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; font-size: 14px; border: 2px solid transparent; border-radius: 8px"><input type="radio" name="capital"> Madrid</label>
+      <label style="display: flex; align-items: center; gap: 12px; padding: 8px 10px; font-size: 14px; border: 2px solid transparent; border-radius: 8px"><input type="radio" name="capital"> Rome</label>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #E1E0E6; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <h2 style="margin: 0; font-size: 16px; font-weight: 500">Father's name</h2>
+      <span style="display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 999px; background: #F1F0EE; color: #57534E; font-size: 12px; font-weight: 500">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#57534E" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path></svg>
+        Not filled
+      </span>
+    </div>
+    <label for="father" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Father's name</label>
+    <input id="father" placeholder="Your answer" style="width: 50%; height: 36px; border: none; border-bottom: 1px solid #D3D2CE; font-size: 14px; font-family: inherit; background: transparent; padding: 0">
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #E1E0E6; border-radius: 10px; padding: 24px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 16px; font-weight: 500">Which planet is known as the Red Planet?</h2>
+      <div style="display: flex">
+        <div role="status" style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border-radius: 999px; background: #F4F4F2; color: #57534E; font-size: 12px; font-weight: 500">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="#E0DFDB"></circle><path d="M12 4a8 8 0 0 1 8 8" stroke="#4F46E5"></path></svg>
+          AI is thinking…
+        </div>
+      </div>
+    </div>
+    <label for="planet" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Which planet is known as the Red Planet?</label>
+    <select id="planet" style="width: 200px; height: 40px; padding: 0 10px; border: 1px solid #D3D2CE; border-radius: 6px; background: #FFFFFF; font-size: 14px; font-family: inherit; color: #1F1F1E">
+      <option>Choose</option>
+      <option>Mars</option>
+    </select>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":760,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

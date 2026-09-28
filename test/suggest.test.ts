@@ -16,7 +16,8 @@ const setup = () => {
     { questionIndex: 1, optionIndex: 1 },
   ]);
   const chips = [...document.querySelectorAll<HTMLElement>('[data-fa-chip]')];
-  const btn = (chip: HTMLElement, action: 'Accept' | 'Dismiss') => chip.querySelector<HTMLButtonElement>(`button[aria-label^="${action} AI pick"]`)!;
+  // Chips render in a shadow root; tests reach in through it.
+  const btn = (chip: HTMLElement, action: 'Accept' | 'Dismiss') => chip.shadowRoot!.querySelector<HTMLButtonElement>(`button[aria-label^="${action} AI pick"]`)!;
   return { clicks, questions, chips, btn };
 };
 
@@ -29,28 +30,30 @@ test('collects only multiple-choice and dropdown questions', () => {
 
 test('suggestions add chips but select nothing', () => {
   const { clicks, chips } = setup();
-  expect(chips.map((c) => c.firstChild!.textContent)).toEqual(['AI pick: Paris ', 'AI pick: Mars ']);
+  expect(chips.map((c) => c.shadowRoot!.querySelector('.label')!.textContent)).toEqual(['AI pick: Paris', 'AI pick: Mars']);
   expect(clicks).toEqual([]);
   expect(document.querySelectorAll('[aria-checked="true"]')).toHaveLength(0);
-  for (const b of document.querySelectorAll('[data-fa-chip] button')) expect((b as HTMLButtonElement).type).toBe('button');
+  const buttons = chips.flatMap((c) => [...c.shadowRoot!.querySelectorAll('button')]);
+  expect(buttons).toHaveLength(4);
+  for (const b of buttons) expect(b.type).toBe('button');
 });
 
 const settle = () => new Promise((r) => setTimeout(r, 10));
 
 test('chip buttons are focusable and say what they do', () => {
   const { chips } = setup();
-  const labels = chips.map((c) => [...c.querySelectorAll('button')].map((b) => b.getAttribute('aria-label')));
+  const labels = chips.map((c) => [...c.shadowRoot!.querySelectorAll('button')].map((b) => b.getAttribute('aria-label')));
   expect(labels).toEqual([
     ['Accept AI pick: Paris', 'Dismiss AI pick: Paris'],
     ['Accept AI pick: Mars', 'Dismiss AI pick: Mars'],
   ]);
-  const b = chips[0].querySelector('button')!;
+  const b = chips[0].shadowRoot!.querySelector('button')!;
   b.focus();
-  expect(document.activeElement).toBe(b);
-  // One focus-outline style, however many times suggestions are shown.
-  showSuggestions(collectQuiz(document).items, [{ questionIndex: 0, optionIndex: 1 }]);
-  expect(document.querySelectorAll('style[data-fa-style]')).toHaveLength(1);
-  expect(document.querySelector('style[data-fa-style]')!.textContent).toContain('[data-fa-chip] button:focus-visible');
+  expect(document.activeElement).toBe(chips[0]); // the page sees the host...
+  expect(chips[0].shadowRoot!.activeElement).toBe(b); // ...the button inside has focus
+  // The focus outline lives inside each chip's shadow root; none of our CSS lands in the page.
+  for (const c of chips) expect(c.shadowRoot!.querySelector('style')!.textContent).toContain('button:focus-visible');
+  expect([...document.querySelectorAll('style')].filter((s) => s.textContent!.includes('focus-visible'))).toHaveLength(0);
 });
 
 test('✓ on MC clicks exactly the suggested radio', async () => {

@@ -2,7 +2,8 @@ import { ERRORS, type AnswersResult, type SuggestResult, type WorkerMessage } fr
 import type { Profile } from '../shared/types';
 import { fillForm } from './fill';
 import { layoutNotRecognized } from './parseForm';
-import { collectQuiz, showNote, showSuggestions } from './suggest';
+import { collectQuiz, showSuggestions } from './suggest';
+import { showNote } from './ui';
 
 // Same ID on /viewform and on /formResponse (the URL after "Next"). Signed in, Next adds /u/<n>/ (verified live).
 export const formIdFrom = (url: string) => url.match(/\/forms\/(?:u\/\d+\/)?d\/(?:e\/)?([\w-]+)/)?.[1] ?? null;
@@ -10,14 +11,14 @@ export const formIdFrom = (url: string) => url.match(/\/forms\/(?:u\/\d+\/)?d\/(
 const REAPPLY_MS = 10_000;
 const NOTE_MS = 6_000;
 
-// nanoOnly: Auto mode, which also shows "AI thinking…" on the page (the popup shows its own).
+// nanoOnly: Auto mode, which also shows "AI is thinking…" on the page (the popup shows its own).
 export async function suggest(root: ParentNode, nanoOnly = false): Promise<SuggestResult> {
   if (layoutNotRecognized(root)) return { error: 'layout' };
   const { items, questions } = collectQuiz(root);
   if (!questions.length) return { count: 0 };
   // Network and AI calls happen in the service worker; this sends only question text and options.
   const msg: WorkerMessage = nanoOnly ? { type: 'getAnswers', questions, nanoOnly } : { type: 'getAnswers', questions };
-  const thinking = nanoOnly ? showNote('AI thinking…') : null;
+  const thinking = nanoOnly ? showNote('AI is thinking…') : null;
   let res: AnswersResult;
   try {
     res = await chrome.runtime.sendMessage<WorkerMessage, AnswersResult>(msg);

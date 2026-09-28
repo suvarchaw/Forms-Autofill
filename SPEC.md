@@ -36,7 +36,7 @@ A Chrome extension for Google Forms that (1) fills personal details from a saved
   a hand-written expected JSON.
 - Fixtures are captured from the live DOM, with `<script>` tags stripped and dummy data only, because the repo will be public.
 - Loading the unpacked extension on a live form logs the same structure in DevTools.
-- The code uses no class-name selectors (grep for `class=`/`.freebird` returns nothing in `src/`).
+- The code that selects Google's page uses no class names: `grep -rnE "class=|className|classList|freebird" src/content --exclude=ui.ts` returns nothing. (`ui.ts` and the popup style our own elements with classes.)
 
 ### v0.2: Profile and personal-details autofill
 - **Popup profile form** with these fields: name, email, phone, college, roll no., department/branch, year, section,

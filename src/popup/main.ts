@@ -2,16 +2,39 @@ import { ERRORS, type FillResult, type Message, type SuggestResult, type WorkerM
 import { NANO_OPTS } from '../background/ai';
 import type { Profile, ProfileKey } from '../shared/types';
 
-const form = document.querySelector<HTMLFormElement>('#profile')!;
-const customList = document.querySelector<HTMLDivElement>('#custom')!;
-const status = document.querySelector<HTMLParagraphElement>('#status')!;
-const fillBtn = document.querySelector<HTMLButtonElement>('#fill')!;
-const fillHint = document.querySelector<HTMLParagraphElement>('#fill-hint')!;
+const $ = <T extends HTMLElement = HTMLElement>(sel: string) => document.querySelector<T>(sel)!;
+const form = $<HTMLFormElement>('#profile');
+const customList = $('#custom');
+const fillBtn = $<HTMLButtonElement>('#fill');
+const fillHint = $('#fill-hint');
+const fillStatus = $('#fill-status');
+const notForm = $('#not-form');
 const KEYS: ProfileKey[] = ['name', 'email', 'phone', 'college', 'rollNo', 'department', 'year', 'section'];
+const NOT_FORM = 'Open a Google Form first';
+
+// Status lines are plain text; data-tone picks the look (see index.html). Empty text hides them.
+type Tone = '' | 'ok' | 'info' | 'warn' | 'error' | 'busy';
+const setStatus = (el: HTMLElement, text: string, tone: Tone = '') => {
+  el.textContent = text;
+  el.dataset.tone = tone;
+};
+// Temporary limits get the warning look; anything that failed gets the error look.
+const errorTone = (e: keyof typeof ERRORS): Tone => (e === 'limit' || e.startsWith('nano_') ? 'warn' : 'error');
+
+// Two views in one page: Edit shows the profile form, Back returns. Focus follows so keyboard users aren't lost.
+const showDetails = (details: boolean) => {
+  $('#main-view').hidden = details;
+  $('#details-view').hidden = !details;
+  $(details ? '#back' : '#edit').focus();
+};
+$('#edit').addEventListener('click', () => showDetails(true));
+$('#back').addEventListener('click', () => showDetails(false));
+
+$('#version').textContent = `v${chrome.runtime.getManifest().version}`;
 
 function addRow(label = '', value = '') {
   const row = document.createElement('div');
-  row.innerHTML = `<input aria-label="Label" placeholder="Label"><input aria-label="Value" placeholder="Value"><button type="button" aria-label="Remove">✕</button>`;
+  row.innerHTML = `<input aria-label="Label" placeholder="Label"><input aria-label="Value" placeholder="Value"><button type="button" class="icon-btn" aria-label="Remove"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>`;
   const [labelInput, valueInput] = row.querySelectorAll('input');
   labelInput.value = label;
   valueInput.value = value;
@@ -34,16 +57,25 @@ function readForm(): Profile {
   return profile;
 }
 
-// Nothing to fill with: say so instead of reporting "Filled 0".
-function updateFill(profile: Profile) {
-  const empty = KEYS.every((k) => !profile[k]) && !profile.custom?.some((c) => c.value);
-  fillBtn.disabled = empty;
-  fillHint.hidden = !empty;
+// Summary card, and nothing to fill with: say so instead of reporting "Filled 0".
+function render(profile: Profile) {
+  const n = KEYS.filter((k) => profile[k]).length + (profile.custom ?? []).filter((c) => c.value).length;
+  fillBtn.disabled = !n;
+  fillHint.hidden = !!n;
+  // A hidden element still describes the button, so only point at the hint while it shows.
+  if (n) fillBtn.removeAttribute('aria-describedby');
+  else fillBtn.setAttribute('aria-describedby', 'fill-hint');
+  $('#summary').hidden = !n;
+  const name = profile.name ?? '';
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase());
+  $('#initials').textContent = initials.join('') || '?';
+  $('#summary-name').textContent = name || 'No name added';
+  $('#summary-count').textContent = `${n} ${n === 1 ? 'detail' : 'details'} saved on this device`;
 }
 
 const save = () => {
   const profile = readForm();
-  updateFill(profile);
+  render(profile);
   return chrome.storage.local.set({ profile });
 };
 
@@ -51,27 +83,33 @@ chrome.storage.local.get('profile').then(({ profile }) => {
   const p = (profile as Profile | undefined) ?? {};
   for (const key of KEYS) (form.elements.namedItem(key) as HTMLInputElement).value = p[key] ?? '';
   for (const c of p.custom ?? []) addRow(c.label, c.value);
-  updateFill(readForm());
+  render(readForm());
 });
 
 form.addEventListener('input', save);
-document.querySelector('#add')!.addEventListener('click', () => addRow());
+$('#add').addEventListener('click', () => addRow());
 
 fillBtn.addEventListener('click', async () => {
   await save();
+  setStatus(notForm, '');
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     // Rejects when no content script is listening, i.e. the tab isn't a Google Form.
     const res = await chrome.tabs.sendMessage<Message, FillResult>(tab.id!, { type: 'fillDetails' });
-    status.textContent = 'error' in res ? ERRORS[res.error] : `Filled ${res.filled}, skipped ${res.skipped}`;
+    if ('error' in res) setStatus(fillStatus, ERRORS[res.error], 'error');
+    else setStatus(fillStatus, `Filled ${res.filled} · skipped ${res.skipped}`, 'ok');
   } catch {
-    status.textContent = 'Open a Google Form first';
+    setStatus(fillStatus, '');
+    setStatus(notForm, NOT_FORM, 'info');
   }
 });
 
 // Quiz suggestions: trigger mode, "Suggest answers", and the one-time Nano download.
-const suggestBtn = document.querySelector<HTMLButtonElement>('#suggest')!;
-const downloadBtn = document.querySelector<HTMLButtonElement>('#download')!;
+const suggestBtn = $<HTMLButtonElement>('#suggest');
+const suggestLabel = $('#suggest-label');
+const quizStatus = $('#quiz-status');
+const downloadBtn = $<HTMLButtonElement>('#download');
+const aiStatus = $('#ai-status');
 const modeInputs = document.querySelectorAll<HTMLInputElement>('input[name="triggerMode"]');
 
 const applyMode = async (mode: string) => {
@@ -79,7 +117,7 @@ const applyMode = async (mode: string) => {
   suggestBtn.disabled = mode === 'off';
   // Auto never uses the proxy (the service worker enforces it), so without Nano it does nothing.
   const nano = typeof LanguageModel !== 'undefined' && (await LanguageModel.availability(NANO_OPTS)) === 'available';
-  if (mode === 'auto' && !nano) status.textContent = ERRORS.nano_unavailable;
+  if (mode === 'auto' && !nano) setStatus(quizStatus, ERRORS.nano_unavailable, 'warn');
 };
 chrome.storage.local.get('triggerMode').then(({ triggerMode }) => {
   const mode = (triggerMode as string | undefined) ?? 'click';
@@ -95,49 +133,57 @@ for (const input of modeInputs) {
 }
 
 suggestBtn.addEventListener('click', async () => {
-  status.textContent = 'Thinking…';
+  setStatus(notForm, '');
+  setStatus(quizStatus, 'Thinking…', 'busy'); // visually hidden: the button shows it; this is for screen readers
   suggestBtn.disabled = true;
+  suggestBtn.setAttribute('aria-busy', 'true');
+  suggestLabel.textContent = 'Thinking…';
   let res: SuggestResult;
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     res = await chrome.tabs.sendMessage<Message, SuggestResult>(tab.id!, { type: 'suggest' });
   } catch {
-    status.textContent = 'Open a Google Form first';
+    setStatus(quizStatus, '');
+    setStatus(notForm, NOT_FORM, 'info');
     return;
   } finally {
     // The user may have picked Off while waiting.
     suggestBtn.disabled = [...modeInputs].some((i) => i.checked && i.value === 'off');
+    suggestBtn.removeAttribute('aria-busy');
+    suggestLabel.textContent = 'Suggest answers';
   }
-  if ('error' in res) status.textContent = ERRORS[res.error];
-  else if (!res.count) status.textContent = 'No multiple-choice or dropdown questions found';
-  else status.textContent = `Suggested ${res.count} answers — confirm each with ✓`;
+  if ('error' in res) setStatus(quizStatus, ERRORS[res.error], errorTone(res.error));
+  else if (!res.count) setStatus(quizStatus, 'No multiple-choice or dropdown questions found');
+  else setStatus(quizStatus, `Suggested ${res.count} answers — confirm each with ✓`);
 });
 
-// Shown only when the model can be downloaded. The download must start from a click (user activation),
-// which the service worker never has.
+// Footer: on-device AI state. The download button shows only when the model can be downloaded;
+// the download must start from a click (user activation), which the service worker never has.
 if (typeof LanguageModel !== 'undefined') {
   LanguageModel.availability(NANO_OPTS).then((a) => {
     downloadBtn.hidden = a !== 'downloadable';
     // Progress is only reported to the create() call that started the download, so none here.
-    if (a === 'downloading') status.textContent = 'On-device AI is downloading…';
+    if (a === 'downloading') setStatus(aiStatus, 'On-device AI is downloading…', 'busy');
+    else if (a === 'available') setStatus(aiStatus, 'On-device AI ready', 'ok');
+    else if (a === 'unavailable') setStatus(aiStatus, 'On-device AI not available');
   });
-}
+} else setStatus(aiStatus, 'On-device AI not available');
+
 downloadBtn.addEventListener('click', async () => {
-  downloadBtn.disabled = true;
+  downloadBtn.hidden = true; // the footer has room for the progress or the button, not both
   try {
     const session = await LanguageModel.create({
       ...NANO_OPTS,
       monitor(m) {
         m.addEventListener('downloadprogress', (e) => {
-          status.textContent = `Downloading on-device AI… ${Math.round((e as ProgressEvent).loaded * 100)}%`;
+          setStatus(aiStatus, `Downloading on-device AI… ${Math.round((e as ProgressEvent).loaded * 100)}%`, 'busy');
         });
       },
     });
     session.destroy();
-    downloadBtn.hidden = true;
-    status.textContent = 'On-device AI ready';
+    setStatus(aiStatus, 'On-device AI ready', 'ok');
   } catch {
-    downloadBtn.disabled = false;
-    status.textContent = 'Download failed — try again';
+    downloadBtn.hidden = false;
+    setStatus(aiStatus, 'Download failed — try again', 'error');
   }
 });

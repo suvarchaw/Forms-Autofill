@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Popup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#FBFBFA;color:#1F1F1E}
+a{color:#4F46E5}a:hover{color:#3730A3}
+</style>
+</helmet>
+<div style="width: 360px; height: 600px; box-sizing: border-box; display: flex; flex-direction: column; background: #FBFBFA; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1F1F1E">
+  <header style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #E9E8E5">
+    <div style="display: flex; align-items: center; gap: 10px">
+      <div style="width: 24px; height: 24px; border-radius: 6px; background: #1F1F1E; display: flex; align-items: center; justify-content: center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 7h14"></path><path d="M5 12h10"></path><path d="M5 17h6"></path></svg>
+      </div>
+      <div style="font-size: 14px; font-weight: 600; letter-spacing: -0.01em">Forms Autofill</div>
+    </div>
+    <button type="button" aria-label="Settings" style="width: 32px; height: 32px; border: none; border-radius: 8px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B6A66" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10"></path><path d="M18 6h2"></path><circle cx="16" cy="6" r="2"></circle><path d="M4 12h4"></path><path d="M12 12h8"></path><circle cx="10" cy="12" r="2"></circle><path d="M4 18h12"></path><path d="M20 18h0"></path><circle cx="18" cy="18" r="2"></circle></svg>
+    </button>
+  </header>
+
+  <sc-if value="{{isNotForm}}" hint-placeholder-val="{{ false }}">
+    <div style="margin: 12px 16px 0; padding: 10px 12px; border-radius: 8px; background: #F1F0EE; display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.45; color: #44433F">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#44433F" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 8h0"></path></svg>
+      <div>Open a Google Form to use Forms Autofill.</div>
+    </div>
+  </sc-if>
+
+  <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px">
+    <section aria-labelledby="details-h" style="background: #FFFFFF; border: 1px solid #E9E8E5; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; justify-content: space-between">
+        <h2 id="details-h" style="margin: 0; font-size: 12px; font-weight: 600; color: #6B6A66; letter-spacing: 0.04em; text-transform: uppercase">Your details</h2>
+        <a href="Details.dc.html" style="font-size: 13px; font-weight: 500; text-decoration: none; padding: 4px 2px">Edit</a>
+      </div>
+      <sc-if value="{{hasProfile}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; gap: 10px">
+          <div style="width: 32px; height: 32px; border-radius: 999px; background: #F1F0EE; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #44433F">AS</div>
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <div style="font-size: 14px; font-weight: 600">Aarav Sharma</div>
+            <div style="font-size: 12px; color: #6B6A66">7 details saved on this device</div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{noProfile}}" hint-placeholder-val="{{ false }}">
+        <div style="font-size: 13px; line-height: 1.5; color: #6B6A66">Add your details first. They stay on this device and fill forms in one click.</div>
+      </sc-if>
+      <sc-if value="{{fillEnabled}}" hint-placeholder-val="{{ true }}">
+        <button type="button" style="height: 44px; border: none; border-radius: 8px; background: #1F1F1E; color: #FFFFFF; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer">Fill my details</button>
+      </sc-if>
+      <sc-if value="{{fillDisabled}}" hint-placeholder-val="{{ false }}">
+        <button type="button" disabled style="height: 44px; border: none; border-radius: 8px; background: #EFEEEB; color: #8A8985; font-size: 14px; font-weight: 600; font-family: inherit; cursor: not-allowed">Fill my details</button>
+      </sc-if>
+      <sc-if value="{{showFilled}}" hint-placeholder-val="{{ true }}">
+        <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6B6A66">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#067647" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+          <span>Filled 7 · skipped 3</span>
+        </div>
+      </sc-if>
+    </section>
+
+    <section aria-labelledby="quiz-h" style="background: #FFFFFF; border: 1px solid #E9E8E5; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px">
+      <h2 id="quiz-h" style="margin: 0; font-size: 12px; font-weight: 600; color: #6B6A66; letter-spacing: 0.04em; text-transform: uppercase">Quiz suggestions</h2>
+      <div role="group" aria-label="When to suggest answers" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding: 3px; border-radius: 8px; background: #F1F0EE">
+        <sc-for list="{{segments}}" as="item" hint-placeholder-count="3">
+          <sc-if value="{{item.on}}" hint-placeholder-val="{{ false }}">
+            <button type="button" aria-pressed="true" onClick="{{item.pick}}" style="height: 32px; border: none; border-radius: 6px; background: #FFFFFF; color: #1F1F1E; font-size: 13px; font-weight: 600; font-family: inherit; box-shadow: 0 1px 2px rgba(31,31,30,0.14); cursor: pointer">{{item.label}}</button>
+          </sc-if>
+          <sc-if value="{{item.off}}" hint-placeholder-val="{{ true }}">
+            <button type="button" aria-pressed="false" onClick="{{item.pick}}" style="height: 32px; border: none; border-radius: 6px; background: transparent; color: #6B6A66; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer">{{item.label}}</button>
+          </sc-if>
+        </sc-for>
+      </div>
+      <sc-if value="{{suggestEnabled}}" hint-placeholder-val="{{ true }}">
+        <button type="button" style="height: 44px; border: 1px solid #E0DFDB; border-radius: 8px; background: #FFFFFF; color: #1F1F1E; font-size: 14px; font-weight: 600; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4"></path><path d="M12 17v4"></path><path d="M3 12h4"></path><path d="M17 12h4"></path><path d="M12 8l1.5 2.5L16 12l-2.5 1.5L12 16l-1.5-2.5L8 12l2.5-1.5z"></path></svg>
+          Suggest answers
+        </button>
+      </sc-if>
+      <sc-if value="{{suggestBusy}}" hint-placeholder-val="{{ false }}">
+        <button type="button" disabled aria-busy="true" style="height: 44px; border: 1px solid #E0DFDB; border-radius: 8px; background: #FBFBFA; color: #6B6A66; font-size: 14px; font-weight: 600; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: progress">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="#E0DFDB"></circle><path d="M12 4a8 8 0 0 1 8 8" stroke="#4F46E5"></path></svg>
+          Thinking…
+        </button>
+      </sc-if>
+      <sc-if value="{{suggestDisabled}}" hint-placeholder-val="{{ false }}">
+        <button type="button" disabled style="height: 44px; border: 1px solid #EFEEEB; border-radius: 8px; background: #FBFBFA; color: #8A8985; font-size: 14px; font-weight: 600; font-family: inherit; cursor: not-allowed">Suggest answers</button>
+      </sc-if>
+      <sc-if value="{{isReady}}" hint-placeholder-val="{{ true }}">
+        <div style="font-size: 12px; line-height: 1.5; color: #6B6A66">Suggested 2 answers. Confirm each one on the page.</div>
+      </sc-if>
+      <sc-if value="{{isLimit}}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="padding: 10px 12px; border-radius: 8px; background: #FFFAEB; border: 1px solid #FEDF89; font-size: 13px; line-height: 1.45; color: #93370D">Daily AI limit reached. Try again tomorrow.</div>
+      </sc-if>
+      <sc-if value="{{isOffline}}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="padding: 10px 12px; border-radius: 8px; background: #FEF3F2; border: 1px solid #FECDCA; font-size: 13px; line-height: 1.45; color: #B42318">Couldn't reach the AI service. Check your connection.</div>
+      </sc-if>
+    </section>
+  </div>
+
+  <footer style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid #E9E8E5; font-size: 12px; color: #6B6A66">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <span style="width: 8px; height: 8px; border-radius: 999px; background: #067647"></span>
+      <span>On-device AI ready</span>
+    </div>
+    <span>v0.4</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"status":{"editor":"enum","options":["ready","thinking","limit","offline","empty","notform"],"default":"ready"},"$preview":{"width":360,"height":600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'click' };
+  }
+  renderVals() {
+    const s = this.props.status ?? 'ready';
+    const mode = this.state.mode;
+    const off = mode === 'off';
+    const notForm = s === 'notform';
+    const empty = s === 'empty';
+    const busy = s === 'thinking';
+    const seg = (id, label) => ({
+      label: label,
+      on: mode === id,
+      off: mode !== id,
+      pick: () => this.setState({ mode: id })
+    });
+    return {
+      isNotForm: notForm,
+      hasProfile: !empty,
+      noProfile: empty,
+      fillEnabled: !empty && !notForm,
+      fillDisabled: empty || notForm,
+      showFilled: s === 'ready',
+      segments: [seg('off', 'Off'), seg('click', 'On click'), seg('auto', 'Auto')],
+      suggestEnabled: !busy && !notForm && !off,
+      suggestBusy: busy,
+      suggestDisabled: !busy && (notForm || off),
+      isReady: s === 'ready' && !off,
+      isLimit: s === 'limit',
+      isOffline: s === 'offline'
+    };
+  }
+}
+</script>
+</body>
+</html>

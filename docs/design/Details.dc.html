@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Your details</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#FBFBFA;color:#1F1F1E}
+a{color:#4F46E5}a:hover{color:#3730A3}
+</style>
+</helmet>
+<div style="width: 360px; height: 760px; box-sizing: border-box; display: flex; flex-direction: column; background: #FBFBFA; font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; color: #1F1F1E">
+  <header style="display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #E9E8E5">
+    <a href="Main.dc.html" aria-label="Back" style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#44433F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <h1 style="margin: 0; font-size: 14px; font-weight: 600">Your details</h1>
+  </header>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; padding: 16px">
+    <sc-for list="{{fields}}" as="f" hint-placeholder-count="6">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="{{f.id}}" style="font-size: 12px; font-weight: 500; color: #44433F">{{f.label}}</label>
+        <input id="{{f.id}}" value="{{f.value}}" readOnly="{{ true }}" style="height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid #E0DFDB; border-radius: 8px; background: #FFFFFF; font-size: 14px; font-family: inherit; color: #1F1F1E">
+      </div>
+    </sc-for>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="year" style="font-size: 12px; font-weight: 500; color: #44433F">Year</label>
+        <input id="year" value="3rd year" readOnly="{{ true }}" style="height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid #E0DFDB; border-radius: 8px; background: #FFFFFF; font-size: 14px; font-family: inherit; color: #1F1F1E">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <label for="section" style="font-size: 12px; font-weight: 500; color: #44433F">Section</label>
+        <input id="section" value="B" readOnly="{{ true }}" style="height: 40px; box-sizing: border-box; padding: 0 12px; border: 1px solid #E0DFDB; border-radius: 8px; background: #FFFFFF; font-size: 14px; font-family: inherit; color: #1F1F1E">
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 6px; border-top: 1px solid #E9E8E5">
+      <h2 style="margin: 8px 0 0; font-size: 12px; font-weight: 600; color: #6B6A66; letter-spacing: 0.04em; text-transform: uppercase">Custom fields</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; align-items: center">
+        <input aria-label="Custom field label" value="Hostel" readOnly="{{ true }}" style="height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #E0DFDB; border-radius: 8px; background: #FFFFFF; font-size: 13px; font-family: inherit; color: #1F1F1E">
+        <div style="display: flex; gap: 6px; align-items: center">
+          <input aria-label="Custom field value" value="Block C" readOnly="{{ true }}" style="flex-grow: 1; min-width: 0; height: 36px; box-sizing: border-box; padding: 0 10px; border: 1px solid #E0DFDB; border-radius: 8px; background: #FFFFFF; font-size: 13px; font-family: inherit; color: #1F1F1E">
+          <button type="button" aria-label="Remove Hostel" style="width: 32px; height: 32px; flex-shrink: 0; border: none; border-radius: 8px; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6A66" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+          </button>
+        </div>
+      </div>
+      <button type="button" style="height: 36px; border: 1px dashed #D3D2CE; border-radius: 8px; background: transparent; color: #44433F; font-size: 13px; font-weight: 500; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#44433F" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        Add field
+      </button>
+    </div>
+  </div>
+
+  <footer style="margin-top: auto; display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid #E9E8E5; font-size: 12px; color: #6B6A66">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B6A66" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+    <span>Saved only on this device. Never sent anywhere.</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":360,"height":760}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      fields: [
+        { id: 'name', label: 'Full name', value: 'Aarav Sharma' },
+        { id: 'email', label: 'Email', value: 'aarav.sharma@example.com' },
+        { id: 'phone', label: 'Phone', value: '98765 43210' },
+        { id: 'college', label: 'College', value: '[Your college]' },
+        { id: 'roll', label: 'Roll number', value: 'RA0001' },
+        { id: 'dept', label: 'Department', value: 'Computer Science' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

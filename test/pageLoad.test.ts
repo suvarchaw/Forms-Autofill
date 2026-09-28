@@ -57,16 +57,17 @@ test('Auto without Nano: asks nano-only, no chips, and no note once this tab has
 
 describe('Auto page note', () => {
   const note = () => document.querySelector<HTMLElement>('[data-fa-note]');
+  const noteText = () => note()?.shadowRoot!.querySelector('.text')!.textContent;
   afterEach(() => {
     vi.useRealTimers();
     note()?.remove(); // the note lives on <body>, which the next setup replaces anyway
   });
 
-  test('"AI thinking…" while waiting, not clickable, gone when the answers arrive', async () => {
+  test('"AI is thinking…" while waiting, not clickable, gone when the answers arrive', async () => {
     let reply!: (r: AnswersResult) => void;
     setup({ flag: false, mode: 'auto', answers: new Promise((r) => (reply = r)) });
     const done = onPageLoad(document, URL);
-    await vi.waitFor(() => expect(note()?.textContent).toBe('AI thinking…'));
+    await vi.waitFor(() => expect(noteText()).toBe('AI is thinking…'));
     expect(note()!.style.pointerEvents).toBe('none');
     expect(note()!.getAttribute('role')).toBe('status');
     reply({ answers: [{ questionIndex: 0, optionIndex: 1 }] });
@@ -93,7 +94,7 @@ describe('Auto page note', () => {
     vi.useFakeTimers();
     setup({ flag: false, mode: 'auto', answers: { error } });
     await onPageLoad(document, URL);
-    expect(note()!.textContent).toBe(text);
+    expect(noteText()).toBe(text);
     expect(count('[data-fa-note]')).toBe(1);
     await vi.advanceTimersByTimeAsync(6000);
     expect(note()).toBeNull();
@@ -110,7 +111,7 @@ describe('Auto page note', () => {
     const { sent } = setup({ flag: false, mode: 'auto', answers: { answers: [] } });
     for (const el of document.querySelectorAll('[role="listitem"]')) el.removeAttribute('role');
     await onPageLoad(document, URL);
-    expect(note()!.textContent).toBe('Forms Autofill: Form layout not recognized — no questions found');
+    expect(noteText()).toBe('Forms Autofill: Form layout not recognized — no questions found');
     expect(sent.map((m) => m.type)).not.toContain('getAnswers');
   });
 
@@ -164,7 +165,7 @@ describe('chips removed by Google re-rendering', () => {
     document.querySelector('[data-fa-chip]')!.remove();
     await settle();
     expect(count('[data-fa-chip]')).toBe(1);
-    expect(document.querySelector('[data-fa-chip]')!.firstChild!.textContent).toBe('AI pick: JavaScript ');
+    expect(document.querySelector('[data-fa-chip]')!.shadowRoot!.querySelector('.label')!.textContent).toBe('AI pick: JavaScript');
     expect(outlines()).toBe(1);
     expect(getAnswersCalls(sent)).toBe(1);
   });
@@ -172,7 +173,7 @@ describe('chips removed by Google re-rendering', () => {
   test('a pick the user dismissed with ✕ stays dismissed', async () => {
     autoPick();
     await onPageLoad(document, URL);
-    document.querySelector<HTMLButtonElement>('[data-fa-chip] button[aria-label="Dismiss AI pick: JavaScript"]')!.click();
+    document.querySelector('[data-fa-chip]')!.shadowRoot!.querySelector<HTMLButtonElement>('button[aria-label="Dismiss AI pick: JavaScript"]')!.click();
     await settle();
     expect(count('[data-fa-chip]')).toBe(0);
   });

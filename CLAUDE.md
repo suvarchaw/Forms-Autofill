@@ -14,7 +14,8 @@ Chrome MV3 extension for Google Forms: profile autofill (no AI) + AI quiz sugges
 - Parser is a pure `parseForm(root: ParentNode)`, tested against saved HTML fixtures in `test/fixtures/` (scripts stripped, dummy data only — repo is public).
 
 ## Rules
-- ARIA-role selectors only, never class names (no `.freebird`/`class=` in `src/`)
+- Select Google's elements by ARIA role only, never class names. Our own UI may use classes: the popup, and `src/content/ui.ts` (chips, badge, note in a Shadow DOM). Check: `grep -rnE "class=|className|classList|freebird" src/content --exclude=ui.ts` returns nothing
+- Everything we draw on Google's page goes through `src/content/ui.ts` (shadow root). Only the outline on Google's own element is an inline style
 - Text fields: set value, dispatch `input` + `change`. Radio/checkbox: `.click()`
 - Never auto-submit; never auto-select AI answers
 - Profile stays in `chrome.storage.local`, never sent anywhere. API keys only as Worker secrets; never commit `.env`/`.dev.vars`

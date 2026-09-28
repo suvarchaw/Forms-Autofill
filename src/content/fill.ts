@@ -2,6 +2,7 @@ import type { FillResult } from '../shared/messages';
 import type { Profile, ProfileKey } from '../shared/types';
 import { matchField } from './match';
 import { parseItem, TEXT_INPUT } from './parseForm';
+import { badge } from './ui';
 
 // Fills short-answer and paragraph questions from the profile. Never overwrites
 // an existing answer. Never logs values.
@@ -38,11 +39,7 @@ export function fillForm(root: ParentNode, profile: Profile): FillResult {
 
 function addBadge(item: Element) {
   if (item.querySelector('[data-fa-badge]')) return;
-  const badge = document.createElement('span');
-  badge.dataset.faBadge = '';
-  badge.textContent = 'not filled';
-  badge.style.cssText = 'display:inline-block;margin:4px 0;padding:1px 6px;border-radius:8px;font:12px sans-serif;background:#fde7e9;color:#a50e0e';
   // Right after the heading, not inside it: inside would change the heading's
   // textContent, i.e. the question text the parser and matcher read on the next run.
-  item.querySelector('[role="heading"][aria-level="3"]')!.after(badge);
+  item.querySelector('[role="heading"][aria-level="3"]')!.after(badge());
 }

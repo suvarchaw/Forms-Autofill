@@ -1,0 +1,33 @@
+/* Design tokens, shared by the popup (<link>) and the shadow roots on Google's page (?raw import).
+   Indigo (--ai*) is only for AI elements. Dark overrides live in the popup: Google Forms is light-only. */
+:root,
+:host {
+  --ground: #fbfbfa;
+  --surface: #ffffff;
+  --border: #e9e8e5;
+  --input-border: #e0dfdb;
+  --ink: #1f1f1e;
+  --secondary: #44433f;
+  --muted: #6b6a66;
+  --track: #f1f0ee;
+  --disabled-bg: #efeeeb;
+  --disabled-text: #8a8985;
+
+  --ai: #4f46e5;
+  --ai-tint: #eef2ff;
+  --ai-border: #c7d2fe;
+  --ai-text: #3730a3;
+
+  --success: #067647;
+  --warn-bg: #fffaeb;
+  --warn-border: #fedf89;
+  --warn-text: #93370d;
+  --error-bg: #fef3f2;
+  --error-border: #fecdca;
+  --error-text: #b42318;
+
+  --radius-card: 12px;
+  --radius: 8px;
+  --radius-pill: 999px;
+  --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}

@@ -5,3 +5,4 @@ dist/
 .wrangler/
 .chrome-for-testing/
 .chrome-profile/
+.DS_Store

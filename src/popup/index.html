@@ -3,47 +3,192 @@
   <head>
     <meta charset="UTF-8" />
     <title>Forms Autofill</title>
+    <link rel="stylesheet" href="../shared/tokens.css" />
     <style>
-      body { width: 300px; font: 13px system-ui, sans-serif; margin: 12px; }
-      h1 { font-size: 15px; margin: 0 0 8px; }
-      label { display: block; margin-bottom: 6px; }
-      label input { display: block; width: 100%; box-sizing: border-box; }
-      #custom > div { display: flex; gap: 4px; margin-bottom: 4px; }
-      #custom input { flex: 1; min-width: 0; }
-      fieldset { margin: 8px 0; }
-      #fill, #suggest, #download { width: 100%; padding: 6px; margin-top: 8px; }
-      #mode label { display: inline; margin-right: 8px; }
-      #fill-hint { margin: 4px 0 0; color: #5f6368; }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ground: #161615;
+          --surface: #1f1f1e;
+          --border: #2e2d2a;
+          --input-border: #3a3935;
+          --ink: #ededeb;
+          --secondary: #c9c8c4;
+          --muted: #a3a29d;
+          --track: #2a2927;
+          --disabled-bg: #2a2927;
+          --disabled-text: #8a8985;
+          --ai: #818cf8;
+          --ai-tint: #1e1b4b;
+          --ai-border: #3730a3;
+          --ai-text: #c7d2fe;
+          --success: #47cd89;
+          --warn-bg: #2b1d07;
+          --warn-border: #7a4d0b;
+          --warn-text: #fec84b;
+          --error-bg: #2d1412;
+          --error-border: #7a271a;
+          --error-text: #fda29b;
+        }
+      }
+      body { margin: 0; width: 360px; background: var(--ground); color: var(--ink); font: 14px/1.4 var(--font); color-scheme: light dark; }
+      [hidden] { display: none !important; }
+      h1 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+      h2 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+      p { margin: 0; }
+      button, input { font: inherit; color: inherit; }
+      :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+      .sr-only, .status[data-tone='busy'] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+      .bar { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+      .logo { width: 24px; height: 24px; border-radius: 6px; background: var(--ink); color: var(--ground); display: flex; align-items: center; justify-content: center; }
+      .foot { border-bottom: 0; border-top: 1px solid var(--border); justify-content: space-between; font-size: 12px; color: var(--muted); }
+      .stack { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+      .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+      .card-head { display: flex; align-items: center; justify-content: space-between; }
+
+      .link { border: 0; background: none; padding: 4px 2px; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 4px; }
+      .link:hover { text-decoration: underline; }
+      .icon-btn { width: 32px; height: 32px; flex: none; border: 0; padding: 0; border-radius: var(--radius); background: none; color: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+      .icon-btn:hover { background: var(--track); }
+      .btn { width: 100%; height: 44px; border-radius: var(--radius); font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
+      .primary { border: 0; background: var(--ink); color: var(--surface); }
+      .primary:hover:enabled { opacity: 0.88; }
+      .primary:disabled { background: var(--disabled-bg); color: var(--disabled-text); cursor: not-allowed; }
+      .secondary { border: 1px solid var(--input-border); background: var(--surface); color: var(--ink); }
+      .secondary:hover:enabled { background: var(--ground); }
+      .secondary:disabled { border-color: var(--disabled-bg); background: var(--ground); color: var(--disabled-text); cursor: not-allowed; }
+      .secondary[aria-busy='true'] { border-color: var(--input-border); color: var(--muted); cursor: progress; }
+      .ai-icon { color: var(--ai); }
+      #suggest:disabled:not([aria-busy]) .ai-icon { color: inherit; }
+      #suggest[aria-busy] .ai-icon, #suggest:not([aria-busy]) .spinner { display: none; }
+      .spinner { animation: spin 0.8s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+      .summary { display: flex; align-items: center; gap: 10px; }
+      .avatar { width: 32px; height: 32px; flex: none; border-radius: var(--radius-pill); background: var(--track); color: var(--secondary); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+      .name { font-weight: 600; }
+      .sub { font-size: 12px; color: var(--muted); }
+      #fill-hint { font-size: 13px; line-height: 1.5; }
+
+      .segments { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; margin: 0; padding: 3px; border: 0; border-radius: var(--radius); background: var(--track); }
+      .segments label { position: relative; }
+      .segments input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+      .segments span { display: flex; align-items: center; justify-content: center; height: 32px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--muted); }
+      .segments input:checked + span { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(31, 31, 30, 0.14); }
+      .segments input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 1px; }
+
+      /* Status lines: plain text set by setStatus(); data-tone picks the look, :empty hides them. */
+      .status:empty, #ai-status:empty { display: none; }
+      .status { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.5; color: var(--muted); }
+      .status::before, #ai-status::before { content: ''; flex: none; }
+      .status[data-tone='ok']::before { width: 14px; height: 14px; margin-top: 2px; background: var(--success); mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>') center / contain no-repeat; }
+      .status[data-tone='info'], .status[data-tone='warn'], .status[data-tone='error'] { padding: 10px 12px; border: 1px solid; border-radius: var(--radius); font-size: 13px; line-height: 1.45; }
+      .status[data-tone='info'] { margin: 12px 16px 0; border-color: var(--track); background: var(--track); color: var(--secondary); }
+      .status[data-tone='info']::before { width: 16px; height: 16px; margin-top: 1px; background: currentColor; mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h0"/></svg>') center / contain no-repeat; }
+      .status[data-tone='warn'] { border-color: var(--warn-border); background: var(--warn-bg); color: var(--warn-text); }
+      .status[data-tone='error'] { border-color: var(--error-border); background: var(--error-bg); color: var(--error-text); }
+      .ai-footer { display: flex; align-items: center; gap: 8px; }
+      #ai-status { display: flex; align-items: center; gap: 8px; }
+      #ai-status::before { width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--disabled-text); }
+      #ai-status[data-tone='ok']::before { background: var(--success); }
+      #ai-status[data-tone='busy']::before { background: var(--ai); }
+      #ai-status[data-tone='error']::before { background: var(--error-text); }
+      #download { color: var(--ai); font-size: 12px; }
+
+      #profile { gap: 14px; }
+      .field { display: flex; flex-direction: column; gap: 6px; font-size: 12px; font-weight: 500; color: var(--secondary); }
+      #profile input { box-sizing: border-box; width: 100%; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid var(--input-border); border-radius: var(--radius); background: var(--surface); color: var(--ink); font-size: 14px; }
+      #profile input:focus-visible { outline-offset: -1px; }
+      .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .custom { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+      #custom { display: flex; flex-direction: column; gap: 8px; }
+      #custom > div { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px; gap: 6px; align-items: center; }
+      #custom input { height: 36px; padding: 0 10px; font-size: 13px; }
+      .dashed { height: 36px; border: 1px dashed var(--input-border); background: transparent; color: var(--secondary); font-size: 13px; font-weight: 500; }
+      .dashed:hover { background: var(--track); }
     </style>
   </head>
   <body>
-    <h1>Forms Autofill</h1>
-    <form id="profile">
-      <label>Name <input name="name" autocomplete="off" /></label>
-      <label>Email <input name="email" type="email" autocomplete="off" /></label>
-      <label>Phone <input name="phone" type="tel" autocomplete="off" /></label>
-      <label>College <input name="college" autocomplete="off" /></label>
-      <label>Roll no. <input name="rollNo" autocomplete="off" /></label>
-      <label>Department / branch <input name="department" autocomplete="off" /></label>
-      <label>Year <input name="year" autocomplete="off" /></label>
-      <label>Section <input name="section" autocomplete="off" /></label>
-      <fieldset>
-        <legend>Custom fields</legend>
-        <div id="custom"></div>
-        <button type="button" id="add">Add field</button>
-      </fieldset>
-    </form>
-    <button type="button" id="fill" aria-describedby="fill-hint">Fill my details</button>
-    <p id="fill-hint" hidden>Add your details first</p>
-    <fieldset id="mode">
-      <legend>Quiz suggestions</legend>
-      <label><input type="radio" name="triggerMode" value="off" /> Off</label>
-      <label><input type="radio" name="triggerMode" value="click" /> On click</label>
-      <label><input type="radio" name="triggerMode" value="auto" /> Auto</label>
-    </fieldset>
-    <button type="button" id="suggest">Suggest answers</button>
-    <button type="button" id="download" hidden>Download on-device AI</button>
-    <p id="status" role="status"></p>
+    <div id="main-view">
+      <header class="bar">
+        <span class="logo" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 7h14" /><path d="M5 12h10" /><path d="M5 17h6" /></svg></span>
+        <h1>Forms Autofill</h1>
+      </header>
+      <p id="not-form" class="status" role="status"></p>
+      <div class="stack">
+        <section class="card" aria-labelledby="details-h">
+          <div class="card-head">
+            <h2 id="details-h">Your details</h2>
+            <button type="button" id="edit" class="link">Edit</button>
+          </div>
+          <div id="summary" class="summary" hidden>
+            <span id="initials" class="avatar" aria-hidden="true"></span>
+            <div>
+              <div id="summary-name" class="name"></div>
+              <div id="summary-count" class="sub"></div>
+            </div>
+          </div>
+          <p id="fill-hint" class="sub" hidden>Add your details first. They stay on this device and fill forms in one click.</p>
+          <button type="button" id="fill" class="btn primary" aria-describedby="fill-hint">Fill my details</button>
+          <p id="fill-status" class="status" role="status"></p>
+        </section>
+
+        <section class="card" aria-labelledby="quiz-h">
+          <h2 id="quiz-h">Quiz suggestions</h2>
+          <fieldset id="mode" class="segments">
+            <legend class="sr-only">When to suggest answers</legend>
+            <label><input type="radio" name="triggerMode" value="off" /><span>Off</span></label>
+            <label><input type="radio" name="triggerMode" value="click" /><span>On click</span></label>
+            <label><input type="radio" name="triggerMode" value="auto" /><span>Auto</span></label>
+          </fieldset>
+          <button type="button" id="suggest" class="btn secondary">
+            <svg class="ai-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4" /><path d="M12 17v4" /><path d="M3 12h4" /><path d="M17 12h4" /><path d="M12 8l1.5 2.5L16 12l-2.5 1.5L12 16l-1.5-2.5L8 12l2.5-1.5z" /></svg>
+            <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8" stroke="var(--input-border)" /><path d="M12 4a8 8 0 0 1 8 8" stroke="var(--ai)" /></svg>
+            <span id="suggest-label">Suggest answers</span>
+          </button>
+          <p id="quiz-status" class="status" role="status"></p>
+        </section>
+      </div>
+      <footer class="bar foot">
+        <div class="ai-footer">
+          <span id="ai-status" role="status"></span>
+          <button type="button" id="download" class="link" hidden>Download on-device AI</button>
+        </div>
+        <span id="version"></span>
+      </footer>
+    </div>
+
+    <div id="details-view" hidden>
+      <header class="bar">
+        <button type="button" id="back" class="icon-btn" aria-label="Back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg></button>
+        <h1>Your details</h1>
+      </header>
+      <form id="profile" class="stack">
+        <label class="field">Full name <input name="name" autocomplete="off" /></label>
+        <label class="field">Email <input name="email" type="email" autocomplete="off" /></label>
+        <label class="field">Phone <input name="phone" type="tel" autocomplete="off" /></label>
+        <label class="field">College <input name="college" autocomplete="off" /></label>
+        <label class="field">Roll number <input name="rollNo" autocomplete="off" /></label>
+        <label class="field">Department / branch <input name="department" autocomplete="off" /></label>
+        <div class="pair">
+          <label class="field">Year <input name="year" autocomplete="off" /></label>
+          <label class="field">Section <input name="section" autocomplete="off" /></label>
+        </div>
+        <div class="custom">
+          <h2>Custom fields</h2>
+          <div id="custom"></div>
+          <button type="button" id="add" class="btn dashed">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14" /><path d="M5 12h14" /></svg>
+            Add field
+          </button>
+        </div>
+      </form>
+      <footer class="bar foot" style="justify-content: flex-start">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>
+        <span>Saved only on this device. Never sent anywhere.</span>
+      </footer>
+    </div>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
