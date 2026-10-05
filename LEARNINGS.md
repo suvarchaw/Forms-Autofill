@@ -60,3 +60,13 @@ the extension never holds the groq key. it talks to my cloudflare worker, and on
 **signed-in bugs** – everything worked in incognito but not signed in (an A/B test: same browser, one difference). debug logs found two causes: signed-in urls have /u/0/ in them so the form id wasn't found, and my code ran before the page finished loading so google redrew the questions and wiped my chips. fixes: allow /u/0/, wait for the page to finish, and redraw chips from saved answers for 10 seconds (no new AI call, and ✕'d chips stay gone). i dropped the /u/0/ idea too early after one check. logs from the real failing run beat one-off checks.
 
 **guardrails, not walls** – claude read my normal chrome's files through a python command. deny rules only block the read tool, not shell commands. real protection = keep secrets out of reach, review plans, manual mode for sensitive work.
+## v0.4 part 2 + new ui
+**speed** – nano was slow because it made a new AI session every click. now one "base" session holds the instructions and each question uses a copy (clone), so no history leaks between forms. opening the popup warms it up. chrome stops the service worker after ~30s idle, so the base dies then.
+
+**errors** – every error has one place it's detected and one place it's shown, and all messages live in one file. auto shows errors as a small corner note for 6s, and nano errors only once per tab.
+
+**stale service worker** – chrome kept running old code after a build. rule: after every build, reload the extension.
+
+**new ui** – designed a mockup first, then built it with plain css "tokens" (named colours used everywhere) and a dark mode checked with a contrast script. indigo only means AI. the chips on google's page live in a shadow DOM, a sealed mini-page, so google's css can't break them and mine can't leak out.
+
+**XSS** – answer options come from whoever wrote the form, so the chip puts text in with textContent, never innerHTML. otherwise a form author could run code inside my extension.
