@@ -6,3 +6,4 @@ dist/
 .chrome-for-testing/
 .chrome-profile/
 .DS_Store
+*.zip

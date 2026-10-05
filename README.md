@@ -24,6 +24,16 @@ It never submits a form and never selects an AI answer for you.
 
 Short answer, paragraph, multiple choice, checkboxes, dropdown. Everything else (grids, dates, file upload, scales) is left untouched.
 
+## Install
+
+Not on the Chrome Web Store yet. Install from a GitHub release:
+
+1. Download `forms-autofill-<version>.zip` from [Releases](https://github.com/suvarchaw/Forms-Autofill/releases) and unzip it.
+2. Open `chrome://extensions` and turn on **Developer mode**.
+3. Click **Load unpacked** and select the unzipped folder.
+
+This is an unreviewed download. Read the source before you install it.
+
 ## Develop
 
 ```bash
