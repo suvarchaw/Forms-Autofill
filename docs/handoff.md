@@ -22,7 +22,7 @@ Chosen over dev-tool ideas despite known concerns (academic-integrity perception
 - **AI layer 1: Gemini Nano** (Chrome's built-in Prompt API, `LanguageModel`). Free and on-device. Needs Windows 10/11, macOS 13+, or Linux; 22 GB free storage; and either a GPU with >4 GB VRAM or 16 GB RAM with 4+ cores. Many 8 GB student laptops won't qualify.
   - The first model download needs a user click (user activation), which a service worker never has. Start the download from the popup.
   - **Unverified:** whether `LanguageModel` inference works in the extension service worker. Spike this on a throwaway branch before planning v0.3. If it doesn't work there, run Nano in an offscreen document or the popup and keep the proxy calls in the service worker.
-- **AI layer 2: my own key behind a Cloudflare Worker proxy** (free tier). Groq is the candidate. Read Groq's terms on serving other users' requests through one key before shipping.
+- **AI layer 2: my own key behind a Cloudflare Worker proxy** (free tier). Groq is the candidate. **Terms checked (resolved):** Services Agreement §3.1 allows serving End Users through a Customer Application; we don't resell or share the key (§3.2, §6.3(c)); §4.2 Groq may not train on Inputs/Outputs; §2 and §6.3 expect users to be 18+.
 - Batch all questions on a page into one request that returns a JSON array of answers.
 - Quiz trigger modes in the popup: Off / On click (default) / Auto. Never auto-submit.
 

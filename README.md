@@ -5,7 +5,7 @@ A Chrome (Manifest V3) extension for Google Forms that does two things:
 1. **Profile autofill, no AI.** Fill name, email, phone, college, roll no. and your own custom fields from a profile saved in the browser.
 2. **AI quiz suggestions you confirm.** Multiple-choice and dropdown questions get an outlined "AI pick" with a ✓ / ✕ chip. Nothing is selected until you click ✓.
 
-It never submits a form and never selects an AI answer for you.
+It never submits a form and never selects an AI answer for you. AI suggestions can be wrong; you are responsible for what you submit.
 
 ## How it works
 
@@ -22,7 +22,7 @@ It never submits a form and never selects an AI answer for you.
 
 ## Supported
 
-Short answer, paragraph, multiple choice, checkboxes, dropdown. Everything else (grids, dates, file upload, scales) is left untouched.
+Fills short-answer and paragraph questions; suggests answers for multiple-choice and dropdown. Everything else (grids, dates, file upload, scales) is left untouched.
 
 ## Install
 
