@@ -7,3 +7,5 @@ dist/
 .chrome-profile/
 .DS_Store
 *.zip
+store-assets/
+.claude/settings.local.json

@@ -118,6 +118,7 @@ const applyMode = async (mode: string) => {
   // Auto never uses the proxy (the service worker enforces it), so without Nano it does nothing.
   const nano = typeof LanguageModel !== 'undefined' && (await LanguageModel.availability(NANO_OPTS)) === 'available';
   if (mode === 'auto' && !nano) setStatus(quizStatus, ERRORS.nano_unavailable, 'warn');
+  else if (quizStatus.textContent === ERRORS.nano_unavailable) setStatus(quizStatus, ''); // keep other results
 };
 chrome.storage.local.get('triggerMode').then(({ triggerMode }) => {
   const mode = (triggerMode as string | undefined) ?? 'click';

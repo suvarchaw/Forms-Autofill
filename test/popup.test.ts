@@ -96,6 +96,25 @@ describe('Suggest answers', () => {
     expect(p.quizStatus.textContent).toBe('No multiple-choice or dropdown questions found');
   });
 
+  test('the Auto-without-Nano warning clears when leaving Auto, but a result stays', async () => {
+    const p = await open({ tabReply: async () => ({ count: 2 }) });
+    const pick = async (v: string) => {
+      const r = document.querySelector<HTMLInputElement>(`input[name="triggerMode"][value="${v}"]`)!;
+      r.checked = true;
+      r.dispatchEvent(new Event('change', { bubbles: true }));
+      await settle();
+    };
+    await pick('auto');
+    expect(p.quizStatus.textContent).toBe('Auto needs on-device AI — use Suggest answers instead');
+    await pick('off');
+    expect(p.quizStatus.textContent).toBe('');
+    await pick('click');
+    p.suggest.click();
+    await settle();
+    await pick('off');
+    expect(p.quizStatus.textContent).toBe('Suggested 2 answers — confirm each with ✓');
+  });
+
   test('opening the popup warms Nano', async () => {
     const p = await open();
     expect(p.runtimeSent).toEqual([{ type: 'warmNano' }]);
