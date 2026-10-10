@@ -50,8 +50,15 @@ async function suggest(request: Request, env: Env): Promise<Response> {
   const questions = validate(body);
   if (!questions) return json(400, { error: 'bad_request' });
 
+  // Cloudflare sets CF-Connecting-IP on every real request. Without it (local tests), share one bucket.
+  const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
   const limiter = env.LIMITER.get(env.LIMITER.idFromName('global'));
-  if (!(await limiter.reserve(installId, Number(env.PER_INSTALL_DAILY), Number(env.DAILY_TOKEN_CAP)))) {
+  const limits = {
+    perInstall: Number(env.PER_INSTALL_DAILY),
+    perIp: Number(env.PER_IP_DAILY),
+    cap: Number(env.DAILY_TOKEN_CAP),
+  };
+  if (!(await limiter.reserve(installId, ip, limits))) {
     return json(429, { error: 'limit_reached' });
   }
 

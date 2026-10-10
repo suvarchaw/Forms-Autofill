@@ -2,7 +2,7 @@ import { env } from 'cloudflare:workers';
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import worker from '../src/index';
 
-type Overrides = Partial<Record<'DAILY_TOKEN_CAP' | 'PER_INSTALL_DAILY', string>>;
+type Overrides = Partial<Record<'DAILY_TOKEN_CAP' | 'PER_INSTALL_DAILY' | 'PER_IP_DAILY', string>>;
 
 const QUESTIONS = [
   { text: 'What is 2 + 2?', options: ['3', '4', '5'] },
@@ -24,9 +24,10 @@ function groqReply(content: string, totalTokens = 50) {
   );
 }
 
-function call(body: unknown, opts: { installId?: string | null; overrides?: Overrides; raw?: string } = {}) {
+function call(body: unknown, opts: { installId?: string | null; ip?: string; overrides?: Overrides; raw?: string } = {}) {
   const installId = opts.installId === undefined ? crypto.randomUUID() : opts.installId;
-  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  // A fresh IP per call by default, so only the per-IP test shares one.
+  const headers: Record<string, string> = { 'content-type': 'application/json', 'CF-Connecting-IP': opts.ip ?? crypto.randomUUID() };
   if (installId) headers['X-Install-Id'] = installId;
   const req = new Request('https://proxy.test/suggest', {
     method: 'POST',
@@ -89,6 +90,19 @@ describe('limits', () => {
     expect(res.status).toBe(429);
     expect(await res.json()).toEqual({ error: 'limit_reached' });
     // A different install is still allowed.
+    expect((await call({ questions: QUESTIONS }, { overrides })).status).toBe(200);
+  });
+
+  it('per-IP limit → 429 even with a fresh install ID each time', async () => {
+    fetchSpy.mockImplementation(async () => groqReply('{"answers":[]}', 1));
+    const ip = '203.0.113.7';
+    const overrides = { PER_IP_DAILY: '2' };
+    expect((await call({ questions: QUESTIONS }, { ip, overrides })).status).toBe(200);
+    expect((await call({ questions: QUESTIONS }, { ip, overrides })).status).toBe(200);
+    const res = await call({ questions: QUESTIONS }, { ip, overrides });
+    expect(res.status).toBe(429);
+    expect(await res.json()).toEqual({ error: 'limit_reached' });
+    // A different IP is still allowed.
     expect((await call({ questions: QUESTIONS }, { overrides })).status).toBe(200);
   });
 

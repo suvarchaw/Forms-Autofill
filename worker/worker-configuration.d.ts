@@ -5,6 +5,7 @@ interface __BaseEnv_Env {
 	MODEL: "openai/gpt-oss-120b";
 	DAILY_TOKEN_CAP: "150000";
 	PER_INSTALL_DAILY: "10";
+	PER_IP_DAILY: "60";
 	LIMITER: DurableObjectNamespace<import("./src/index").Limiter>;
 }
 declare namespace Cloudflare {
@@ -19,7 +20,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "MODEL" | "DAILY_TOKEN_CAP" | "PER_INSTALL_DAILY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "MODEL" | "DAILY_TOKEN_CAP" | "PER_INSTALL_DAILY" | "PER_IP_DAILY">> {}
 }
 
 // Begin runtime types

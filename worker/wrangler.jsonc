@@ -6,7 +6,9 @@
   "vars": {
     "MODEL": "openai/gpt-oss-120b",
     "DAILY_TOKEN_CAP": "150000",
-    "PER_INSTALL_DAILY": "10"
+    "PER_INSTALL_DAILY": "10",
+    // Stops install-ID rotation from draining DAILY_TOKEN_CAP. A campus behind one IP shares it.
+    "PER_IP_DAILY": "60"
   },
   "durable_objects": {
     "bindings": [{ "name": "LIMITER", "class_name": "Limiter" }]
