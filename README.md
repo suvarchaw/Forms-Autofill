@@ -1,9 +1,16 @@
 # Forms Autofill
 
+<p>
+  <img src="docs/screenshots/1-before.webp" width="49%" alt="Empty form with the popup open">
+  <img src="docs/screenshots/2-filled.webp" width="49%" alt="Form after Fill my details">
+  <img src="docs/screenshots/3-not-filled.webp" width="49%" alt="Ambiguous fields badged Not filled">
+  <img src="docs/screenshots/4-quiz.webp" width="49%" alt="AI pick chips with confirm and dismiss">
+</p>
+
 A Chrome (Manifest V3) extension for Google Forms that does two things:
 
 1. **Profile autofill, no AI.** Fill name, email, phone, college, roll no. and your own custom fields from a profile saved in the browser.
-2. **AI quiz suggestions you confirm.** Multiple-choice and dropdown questions get an outlined "AI pick" with a ✓ / ✕ chip. Nothing is selected until you click ✓.
+2. **Quiz suggestions, on-device first.** Design constraint: suggestions come from on-device Gemini Nano when available, and nothing is selected or submitted until you confirm. Multiple-choice and dropdown questions get an outlined "AI pick" with a ✓ / ✕ chip; nothing is selected until you click ✓.
 
 It never submits a form and never selects an AI answer for you. AI suggestions can be wrong; you are responsible for what you submit.
 

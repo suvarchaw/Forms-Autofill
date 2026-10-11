@@ -9,3 +9,6 @@ dist/
 *.zip
 store-assets/
 .claude/settings.local.json
+CLAUDE.md
+.claude/
+.mcp.json
